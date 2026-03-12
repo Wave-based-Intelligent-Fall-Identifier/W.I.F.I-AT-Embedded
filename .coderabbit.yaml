@@ -1,7 +1,13 @@
 language: "ko-KR"
 
 reviews:
-  profile: "chill"
+  profile: "assertive"   
+  request_changes: true  
 
 auto_review:
   enabled: true
+  drafts: false
+
+tools:
+  generate_docstrings: true
+  generate_unit_tests: false
