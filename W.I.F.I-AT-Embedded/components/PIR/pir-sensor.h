@@ -10,6 +10,12 @@
 #include "freertos/task.h"
 
 #include "esp_sleep.h"
+#include "esp_wifi.h"
+#include "esp_now.h"
 #include "esp_log.h"
 
 #include "driver/rtc_io.h"
+
+typedef struct {
+    uint8_t command;
+} espnow_payload_t;
