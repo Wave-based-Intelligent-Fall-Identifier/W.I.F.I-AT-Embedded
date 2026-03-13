@@ -19,3 +19,5 @@
 typedef struct {
     uint8_t command;
 } espnow_payload_t;
+
+void pir_sensor();
