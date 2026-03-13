@@ -10,7 +10,7 @@ void app_main(void) {
     ESP_LOGI(TAG, "습립 모드 및 PIR 가동 [1/5]...");
 }
 
-// PIR
-// Wifi AP
-// ESP-NOW
-// sleep
+// PIR       . o
+// Wifi AP   .
+// ESP-NOW   . o
+// sleep     . o
