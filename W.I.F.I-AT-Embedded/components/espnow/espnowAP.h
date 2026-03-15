@@ -13,3 +13,11 @@
 #include "esp_log.h"
 
 #include "nvs_flash.h"
+
+#define  CONNECTED_BIT      BIT0
+#define  GOT_IP_BIT         BIT2
+#define  FAIL_BIT           BIT4
+
+#define WIFI_SSID      "k"
+#define WIFI_PASS      "ericeric0223"
+#define MAXIMUM_RETRY  5
