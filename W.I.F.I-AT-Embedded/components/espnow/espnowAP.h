@@ -11,6 +11,7 @@
 #include "esp_wifi.h"
 #include "esp_now.h"
 #include "esp_log.h"
+#include "esp_mac.h"
 
 #include "nvs_flash.h"
 

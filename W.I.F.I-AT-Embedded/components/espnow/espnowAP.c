@@ -5,38 +5,16 @@ static int retryCounts = 0;
 static EventGroupHandle_t wifiEventGroup;
 
 static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
-    switch(eventId) {
-        case WIFI_EVENT_STA_START:
-        {
-            ESP_LOGI(TAG, "WiFi STA 시작 중...");
-            ESP_ERROR_CHECK(esp_wifi_connect());
-        }
-        break;
-
-        case WIFI_EVENT_STA_CONNECTED:
-        {
-            ESP_LOGI(TAG, "WiFi STA 연결됨 ...");
-            xEventGroupSetBits(wifiEventGroup, CONNECTED_BIT);
-            retryCounts = 0;
-        }   
-        break;
-
-        case WIFI_EVENT_STA_DISCONNECTED:
-        {
-           ESP_LOGW(TAG, "연결 재시도... (횟수 : %d)", retryCounts);
-           esp_wifi_connect();
-           retryCounts++;
-        }
-        break;
-
-        case IP_EVENT_STA_GOT_IP:
-        {
-            ip_event_got_ip_t *event = (ip_event_got_ip_t*) eventData;
-            ESP_LOGI(TAG, "WiFi STA (DHCP IP : )" IPSTR,IP2STR(&event->ip_info.ip));
-            xEventGroupSetBits(wifiEventGroup, GOT_IP_BIT);
-        }
-        break;
-        default: break;
+    if (eventId == WIFI_EVENT_AP_START) {
+        ESP_LOGI(TAG, "WiFi AP모드 시작");
+    }
+    else if (eventId == WIFI_EVENT_AP_STACONNECTED) {
+        wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) eventData;
+        ESP_LOGI(TAG, "장치 접속됨 MAC: " MACSTR ", AID: %d", MAC2STR(event->mac), event->aid);    
+    }
+    else if (eventId == WIFI_EVENT_AP_STADISCONNECTED) {
+        wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) eventData;
+        ESP_LOGI(TAG, "👋 장치 연결 끊김! MAC: " MACSTR ", AID: %d", MAC2STR(event->mac), event->aid);
 
     }
 }
