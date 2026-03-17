@@ -43,6 +43,13 @@ esp_err_t wifiInit(void) {
         return err;
     }
 
+    esp_event_handler_instance_t instance_any_id;
+    esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiHandler, NULL, &instance_any_id);
+    if(err != ESP_OK) {
+        ESP_LOGE(TAG, "핸들러 등록 실패 (WIFI_EVENT)");
+        return err; 
+    }
+
     wifi_config_t wifi_config = {
         .ap = {
             .ssid = WIFI_SSID,
@@ -58,8 +65,8 @@ esp_err_t wifiInit(void) {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
 
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
     ESP_LOGI(TAG, "WiFi 초기화 성공, 연결 대기 중");
