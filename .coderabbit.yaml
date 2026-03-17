@@ -1,8 +1,7 @@
 language: "ko-KR"
 
 reviews:
-  profile: "assertive"   
-  request_changes: true  
+  profile: "assertive"
 
 auto_review:
   enabled: true
@@ -10,4 +9,3 @@ auto_review:
 
 tools:
   generate_docstrings: true
-  generate_unit_tests: false
