@@ -1,7 +1,6 @@
 #include "espnowAP.h"
 
 const static char* TAG = "ESP-NOW-AP";
-static int retryCounts = 0;
 static EventGroupHandle_t wifiEventGroup;
 
 static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
@@ -14,8 +13,7 @@ static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId,
     }
     else if (eventId == WIFI_EVENT_AP_STADISCONNECTED) {
         wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) eventData;
-        ESP_LOGI(TAG, "👋 장치 연결 끊김! MAC: " MACSTR ", AID: %d", MAC2STR(event->mac), event->aid);
-
+        ESP_LOGI(TAG, "장치 연결 끊김 MAC: " MACSTR ", AID: %d", MAC2STR(event->mac), event->aid);
     }
 }
 
@@ -25,7 +23,7 @@ esp_err_t wifiInit(void) {
 
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
-    esp_netif_create_default_wifi_sta();
+    esp_netif_create_default_wifi_ap();
 
     err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -39,36 +37,27 @@ esp_err_t wifiInit(void) {
     }
 
     wifi_init_config_t wifiInitConfig = WIFI_INIT_CONFIG_DEFAULT();
-
     err = esp_wifi_init(&wifiInitConfig);
     if(err != ESP_OK) {
         ESP_LOGE(TAG, "WiFi 기본 초기화 실패");
         return err;
     }
 
-    
-    esp_event_handler_instance_t instance_any_id;
-    esp_event_handler_instance_t instance_got_ip;
-
-    err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiHandler, NULL, &instance_any_id);
-    if(err != ESP_OK) {
-        ESP_LOGE(TAG, "핸들러 등록 실패 (handler.1)");
-        return err;
-    }
-
-    err = esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifiHandler, NULL, &instance_got_ip);
-    if(err != ESP_OK) {
-        ESP_LOGE(TAG, "핸들러 등록 실패 (handler.2)");
-        return err;
-    }
-
     wifi_config_t wifi_config = {
-        .sta = {
+        .ap = {
             .ssid = WIFI_SSID,
+            .ssid_len = strlen(WIFI_SSID),
+            .channel = 6,
             .password = WIFI_PASS,
+            .max_connection = 2,
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK
         },
     };
     
+    if (strlen(WIFI_PASS) == 0) {
+        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    }
+
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
