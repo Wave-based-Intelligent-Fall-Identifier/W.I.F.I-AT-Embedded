@@ -3,7 +3,7 @@
 const static char *TAG = "Pir-Sensor";
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-void pir_sensor(void) {
+void pir_sensor(void* pvParameters) {
     espnow_payload_t payload = {0};
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
 
@@ -20,7 +20,7 @@ void pir_sensor(void) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             idle_time_sec++;
 
-            if (rtc_gpio_get_level(PIR_PIN) == 1) {
+            if (rtc_gpio_get_level(PIR_SENSOR_PIN) == 1) {
                 idle_time_sec = 0;
             }
         }
@@ -34,8 +34,8 @@ void pir_sensor(void) {
     // 초기 부팅, PIR만 세팅
     else {
         ESP_LOGI(TAG, "초기 부팅. PIR 대기 모드로 변경합니다.");
-        esp_sleep_enable_ext1_wakeup(1ULL << PIR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
+        esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
     }
-    esp_sleep_enable_ext1_wakeup(1ULL << PIR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
+    esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
     esp_deep_sleep_start();
 }

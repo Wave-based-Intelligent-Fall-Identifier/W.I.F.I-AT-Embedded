@@ -2,6 +2,7 @@
 #include "esp_log.h"
 #include "pir-sensor.h"
 #include "espnowAP.h"
+#include "gpio_definitions.h"
 
 const static char* TAG = "Main";
 
@@ -10,13 +11,12 @@ void app_main(void) {
     ESP_ERROR_CHECK(wifiInit());
 
     ESP_LOGI(TAG, "[step 2] Initializing Peripherals...");
-    
+    gpio_pin_init();
 
 
-    ESP_LOGI(TAG, "WiFi 초기화 [1/4]...");
-    ESP_LOGI(TAG, "PIR 센서 가동 [2/4]...");
-    ESP_LOGI(TAG, "CSI 데이터 전송 준비 완료[3/4]...");
-    xTaskCreate(espnow_csi_send, "espnow_csi_send", 4096, NULL, 10, NULL);
-    pir_sensor();
-    ESP_LOGI(TAG, "습립 모드 및 PIR 가동 [4/4]...");
+    ESP_LOGI(TAG, "[step 3] Initializing ESP-NOW...");
+    xTaskCreate(espnow_csi_send, "espnow_csi_send", 4096, NULL, 5, NULL);
+    xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL);
+
+    ESP_LOGI(TAG, "[step 4] Starting system!");
 }
