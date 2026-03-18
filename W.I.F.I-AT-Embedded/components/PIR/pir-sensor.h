@@ -15,9 +15,6 @@
 
 #include "driver/rtc_io.h"
 #include "gpio_definitions.h"
-
-typedef struct {
-    uint8_t command;
-} espnow_payload_t;
+#include "APconfig.h"
 
 void pir_sensor(void* pvParameters);

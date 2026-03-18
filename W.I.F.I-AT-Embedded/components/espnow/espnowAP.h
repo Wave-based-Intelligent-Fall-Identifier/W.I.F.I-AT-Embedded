@@ -16,6 +16,7 @@
 
 #include "nvs_flash.h"
 #include "pir-sensor.h"
+#include "APconfig.h"
 
 #define  CONNECTED_BIT      BIT0
 #define  GOT_IP_BIT         BIT2

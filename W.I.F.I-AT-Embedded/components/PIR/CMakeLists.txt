@@ -1,5 +1,5 @@
 idf_component_register(
     SRCS "pir-sensor.c"
     INCLUDE_DIRS "."
-    REQUIRES driver esp_wifi freertos gpio
+    REQUIRES driver esp_wifi freertos gpio APcommon
 )
