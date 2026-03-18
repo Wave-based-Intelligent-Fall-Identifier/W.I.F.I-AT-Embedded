@@ -3,6 +3,8 @@
 const static char* TAG = "ESP-NOW-AP";
 static EventGroupHandle_t wifiEventGroup;
 
+const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
 static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
     if (eventId == WIFI_EVENT_AP_START) {
         ESP_LOGI(TAG, "WiFi AP모드 시작");
@@ -44,7 +46,7 @@ esp_err_t wifiInit(void) {
     }
 
     esp_event_handler_instance_t instance_any_id;
-    esp_err_t err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiHandler, NULL, &instance_any_id);
+    err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiHandler, NULL, &instance_any_id);
     if(err != ESP_OK) {
         ESP_LOGE(TAG, "핸들러 등록 실패 (WIFI_EVENT)");
         return err; 
@@ -86,4 +88,18 @@ esp_err_t wifiInit(void) {
     }
 
     return ESP_OK;
+}
+
+void espnow_csi_send(void* pvParameter) {
+    while(1) {
+        espnow_payload_t payload;
+        payload.command = 0;
+
+        esp_err_t err = esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
+        if (err != ESP_OK) {
+            ESP_LOGI(TAG, "espnow CSI 데이터 전송 실패");
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
 }
