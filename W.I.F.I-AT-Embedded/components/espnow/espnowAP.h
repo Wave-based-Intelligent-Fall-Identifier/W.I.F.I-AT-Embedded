@@ -12,8 +12,10 @@
 #include "esp_now.h"
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "esp_err.h"
 
 #include "nvs_flash.h"
+#include "pir-sensor.h"
 
 #define  CONNECTED_BIT      BIT0
 #define  GOT_IP_BIT         BIT2
@@ -25,3 +27,4 @@
 
 esp_err_t wifiInit(void);
 static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData);
+void espnow_csi_send(void* pvParameter);
