@@ -54,16 +54,16 @@ esp_err_t wifiInit(void) {
 
     wifi_config_t wifi_config = {
         .ap = {
-            .ssid = WIFI_SSID,
-            .ssid_len = strlen(WIFI_SSID),
+            .ssid = CONFIG_ESP_WIFI_SSID,
+            .ssid_len = strlen(CONFIG_ESP_WIFI_SSID),
             .channel = 6,
-            .password = WIFI_PASS,
+            .password = CONFIG_ESP_WIFI_PASSWORD,
             .max_connection = 2,
             .authmode = WIFI_AUTH_WPA_WPA2_PSK
         },
     };
     
-    if (strlen(WIFI_PASS) == 0) {
+    if (strlen(CONFIG_ESP_WIFI_PASSWORD) == 0) {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
 

@@ -5,6 +5,7 @@
 #include "gpio_definitions.h"
 
 const static char* TAG = "Main";
+SemaphoreHandle_t nowMutex = NULL;
 
 void app_main(void) {
     ESP_LOGI(TAG, "[step 1] Initializing System...");
