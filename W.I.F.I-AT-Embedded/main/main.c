@@ -13,10 +13,15 @@ void app_main(void) {
     ESP_LOGI(TAG, "[step 2] Initializing Peripherals...");
     gpio_pin_init();
 
+    ESP_LOGI(TAG, "[step 3] Creating Mutex...");
+    nowMutex = xSemaphoreCreateMutex();
 
-    ESP_LOGI(TAG, "[step 3] Initializing ESP-NOW...");
+    ESP_LOGI(TAG, "[step 4] Initializing ESP-NOW...");
     xTaskCreate(espnow_csi_send, "espnow_csi_send", 4096, NULL, 5, NULL);
     xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL);
 
-    ESP_LOGI(TAG, "[step 4] Starting system!");
+    ESP_LOGI(TAG, "[step 5] Starting system!");
 }
+
+
+// kconfig.projbuild 파일 추가해서 민감한 정보 관리

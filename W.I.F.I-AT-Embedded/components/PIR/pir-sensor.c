@@ -4,6 +4,8 @@ const static char *TAG = "Pir-Sensor";
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 void pir_sensor(void* pvParameters) {
+    uint32_t retry_count = 0;
+    esp_err_t err;
     espnow_payload_t payload = {0};
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
 
@@ -11,8 +13,12 @@ void pir_sensor(void* pvParameters) {
     if (cause == ESP_SLEEP_WAKEUP_EXT1) {
         ESP_LOGI(TAG, "사람 감지, 10분간 CSI 전송 모드 유지");
 
-        payload.command = 1; 
-        esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
+        if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
+            payload.command = 1; 
+            esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
+            xSemaphoreGive(nowMutex);
+        }
+        
         vTaskDelay(pdMS_TO_TICKS(100));
 
         uint32_t idle_time_sec = 0;
@@ -26,8 +32,25 @@ void pir_sensor(void* pvParameters) {
         }
 
         ESP_LOGI(TAG, "10분 경과, DeepSleep 시작");
-        payload.command = 2;
-        esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
+        if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
+            payload.command = 2;
+            retry_count = 0;
+
+            while (retry_count < 3) {
+                err = esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
+                if (err == ESP_FAIL) {
+                    ESP_LOGI(TAG, "마지막 메시지 전송 실패");
+                }
+                else {
+                    ESP_LOGI(TAG, "마지막 메시지 전송 성공");
+                    break;
+                }
+                ESP_LOGW(TAG, "마지막 메시지 전송 재시도 (%d/3)", retry_count);
+                retry_count++;
+                vTaskDelay(pdMS_TO_TICKS(20));
+            }
+        }
+
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 

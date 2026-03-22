@@ -72,21 +72,6 @@ esp_err_t wifiInit(void) {
     ESP_ERROR_CHECK(esp_wifi_start());
 
     ESP_LOGI(TAG, "WiFi 초기화 성공, 연결 대기 중");
-    EventBits_t bits = xEventGroupWaitBits(wifiEventGroup, GOT_IP_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-
-    if (bits & GOT_IP_BIT) {
-        ESP_LOGI(TAG, "WiFi 연결 성공, IP획득");
-        return ESP_OK;
-    } 
-    else if (bits & FAIL_BIT) {
-        ESP_LOGE(TAG, "WiFi 연결 실패");
-        return ESP_FAIL;
-    } 
-    else {
-        ESP_LOGE(TAG, "예상치 못한 에러 발생");
-        return ESP_FAIL;
-    }
-
     return ESP_OK;
 }
 
@@ -95,9 +80,9 @@ void espnow_csi_send(void* pvParameter) {
         espnow_payload_t payload;
         payload.command = 0;
 
-        esp_err_t err = esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
-        if (err != ESP_OK) {
-            ESP_LOGI(TAG, "espnow CSI 데이터 전송 실패");
+        if (xSemaphoreTake(nowMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
+            xSemaphoreGive(nowMutex);
         }
         
         vTaskDelay(pdMS_TO_TICKS(20));
