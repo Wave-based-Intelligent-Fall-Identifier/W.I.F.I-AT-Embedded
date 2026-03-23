@@ -5,7 +5,7 @@ static EventGroupHandle_t wifiEventGroup;
 
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
+void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
     if (eventId == WIFI_EVENT_AP_START) {
         ESP_LOGI(TAG, "WiFi AP모드 시작");
     }
@@ -54,16 +54,16 @@ esp_err_t wifiInit(void) {
 
     wifi_config_t wifi_config = {
         .ap = {
-            .ssid = WIFI_SSID,
-            .ssid_len = strlen(WIFI_SSID),
+            .ssid = CONFIG_ESP_WIFI_SSID,
+            .ssid_len = strlen(CONFIG_ESP_WIFI_SSID),
             .channel = 6,
-            .password = WIFI_PASS,
+            .password = CONFIG_ESP_WIFI_PASSWORD,
             .max_connection = 2,
             .authmode = WIFI_AUTH_WPA_WPA2_PSK
         },
     };
     
-    if (strlen(WIFI_PASS) == 0) {
+    if (strlen(CONFIG_ESP_WIFI_PASSWORD) == 0) {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
 
@@ -72,21 +72,6 @@ esp_err_t wifiInit(void) {
     ESP_ERROR_CHECK(esp_wifi_start());
 
     ESP_LOGI(TAG, "WiFi 초기화 성공, 연결 대기 중");
-    EventBits_t bits = xEventGroupWaitBits(wifiEventGroup, GOT_IP_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-
-    if (bits & GOT_IP_BIT) {
-        ESP_LOGI(TAG, "WiFi 연결 성공, IP획득");
-        return ESP_OK;
-    } 
-    else if (bits & FAIL_BIT) {
-        ESP_LOGE(TAG, "WiFi 연결 실패");
-        return ESP_FAIL;
-    } 
-    else {
-        ESP_LOGE(TAG, "예상치 못한 에러 발생");
-        return ESP_FAIL;
-    }
-
     return ESP_OK;
 }
 
@@ -95,9 +80,12 @@ void espnow_csi_send(void* pvParameter) {
         espnow_payload_t payload;
         payload.command = 0;
 
-        esp_err_t err = esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
-        if (err != ESP_OK) {
-            ESP_LOGI(TAG, "espnow CSI 데이터 전송 실패");
+        if (xSemaphoreTake(nowMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
+            xSemaphoreGive(nowMutex);
+        } 
+        else {
+            ESP_LOGE(TAG, "Mutex 획득 실패, CSI 전송 불가");
         }
         
         vTaskDelay(pdMS_TO_TICKS(20));
