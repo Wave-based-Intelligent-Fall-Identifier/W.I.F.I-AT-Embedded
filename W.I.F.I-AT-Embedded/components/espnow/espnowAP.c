@@ -5,7 +5,7 @@ static EventGroupHandle_t wifiEventGroup;
 
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
+void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
     if (eventId == WIFI_EVENT_AP_START) {
         ESP_LOGI(TAG, "WiFi AP모드 시작");
     }

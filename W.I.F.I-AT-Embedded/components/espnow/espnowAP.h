@@ -26,5 +26,5 @@
 #define MAXIMUM_RETRY  5
 
 esp_err_t wifiInit(void);
-static void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData);
+void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData);
 void espnow_csi_send(void* pvParameter);
