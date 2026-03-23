@@ -1,7 +1,7 @@
-#include <stdint.h>
-
 #ifndef GPIO_DEFINITIONS_H
 #define GPIO_DEFINITIONS_H
+
+#include <stdint.h>
 
 #ifndef GPIO_BASE_ADDR
 #define GPIO_BASE_ADDR 0x3FF44000 
@@ -16,6 +16,6 @@
 #define FAST_GPIO_INPUT_EN(pin) (GPIO_ENABLE_W1TC_REG = (1UL << (pin)))
 #define FAST_GPIO_READ(pin)     ((GPIO_IN_REG >> (pin)) & 1UL)
 
-#endif
-
 void gpio_pin_init(void);
+
+#endif

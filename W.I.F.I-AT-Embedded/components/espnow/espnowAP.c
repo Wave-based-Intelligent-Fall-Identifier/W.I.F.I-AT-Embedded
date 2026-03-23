@@ -83,6 +83,9 @@ void espnow_csi_send(void* pvParameter) {
         if (xSemaphoreTake(nowMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
             esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
             xSemaphoreGive(nowMutex);
+        } 
+        else {
+            ESP_LOGE(TAG, "Mutex 획득 실패, CSI 전송 불가");
         }
         
         vTaskDelay(pdMS_TO_TICKS(20));

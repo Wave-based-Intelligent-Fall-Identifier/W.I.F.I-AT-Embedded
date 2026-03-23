@@ -4,10 +4,10 @@ const static char *TAG = "Pir-Sensor";
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 void pir_sensor(void* pvParameters) {
-    uint32_t retry_count = 0;
     esp_err_t err;
     espnow_payload_t payload = {0};
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+    uint8_t retry_count;
 
     // PIR이 사람을 감지함, 10분 타이머 리셋 
     if (cause == ESP_SLEEP_WAKEUP_EXT1) {
@@ -26,7 +26,7 @@ void pir_sensor(void* pvParameters) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             idle_time_sec++;
 
-            if (rtc_gpio_get_level(PIR_SENSOR_PIN) == 1) {
+            if (gpio_get_level(PIR_SENSOR_PIN) == 1) {
                 idle_time_sec = 0;
             }
         }
@@ -45,7 +45,7 @@ void pir_sensor(void* pvParameters) {
                     ESP_LOGI(TAG, "마지막 메시지 전송 성공");
                     break;
                 }
-                ESP_LOGW(TAG, "마지막 메시지 전송 재시도 (%d/3)", retry_count);
+                ESP_LOGW(TAG, "마지막 메시지 전송 재시도 (%d/3)", (retry_count + 1));
                 retry_count++;
                 vTaskDelay(pdMS_TO_TICKS(20));
             }
