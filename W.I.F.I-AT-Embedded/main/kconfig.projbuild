@@ -11,4 +11,10 @@ config ESP_WIFI_PASSWORD
     default "mypassword"
     help
 	WiFi password (WPA or WPA2) for the example to use.
+
+config ESP_MAC_ADDR
+    string "MAC Address"
+    default "0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF"
+    help
+    MAC Address for the connect to other ESP32.
 endmenu

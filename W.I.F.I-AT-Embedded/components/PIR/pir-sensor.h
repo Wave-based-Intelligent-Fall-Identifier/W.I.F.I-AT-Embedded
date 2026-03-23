@@ -15,6 +15,7 @@
 
 #include "driver/rtc_io.h"
 #include "gpio_definitions.h"
+#include "driver/gpio.h"
 #include "APconfig.h"
 
 void pir_sensor(void* pvParameters);
