@@ -11,6 +11,8 @@
 #include "esp_sleep.h"
 #include "esp_wifi.h"
 #include "esp_now.h"
+#include "esp_mac.h"
+#include "esp_system.h"
 #include "esp_log.h"
 
 #include "driver/rtc_io.h"

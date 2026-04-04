@@ -18,42 +18,47 @@ void pir_sensor(void* pvParameters) {
             esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
             xSemaphoreGive(nowMutex);
         }
+        ESP_LOGI(TAG, "PIR Mutex 확보");
         
         vTaskDelay(pdMS_TO_TICKS(100));
 
-        uint32_t idle_time_sec = 0;
-        while (idle_time_sec < 600) {
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            idle_time_sec++;
+        uint32_t idle_time_ms = 0;
+        uint32_t MAX_IDLE_TIME_MS = 600000;
+
+        while (idle_time_ms < MAX_IDLE_TIME_MS) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+            idle_time_ms += 100;
 
             if (gpio_get_level(PIR_SENSOR_PIN) == 1) {
-                idle_time_sec = 0;
+                idle_time_ms = 0;
             }
+
+            ESP_LOGI(TAG, "대기 중... %lu초 경과", idle_time_ms / 1000);
         }
 
         ESP_LOGI(TAG, "10분 경과, DeepSleep 시작");
+        
         if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
             payload.command = 2;
             retry_count = 0;
 
             while (retry_count < 3) {
                 err = esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
-                if (err == ESP_FAIL) {
-                    ESP_LOGI(TAG, "마지막 메시지 전송 실패");
-                }
-                else {
+                if (err == ESP_OK) { 
                     ESP_LOGI(TAG, "마지막 메시지 전송 성공");
                     break;
+                } else {
+                    ESP_LOGI(TAG, "마지막 메시지 전송 실패");
                 }
                 ESP_LOGW(TAG, "마지막 메시지 전송 재시도 (%d/3)", (retry_count + 1));
                 retry_count++;
                 vTaskDelay(pdMS_TO_TICKS(20));
             }
+            xSemaphoreGive(nowMutex); 
         }
 
         vTaskDelay(pdMS_TO_TICKS(100));
     }
-
     // 초기 부팅, PIR만 세팅
     else {
         ESP_LOGI(TAG, "초기 부팅. PIR 대기 모드로 변경합니다.");
