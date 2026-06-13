@@ -4,5 +4,6 @@
     "--background-index",
     "--query-driver=**",
     "--compile-commands-dir=c:\\projects\\wify\\WIFY-AT\\W.I.F.I-AT-Embedded\\W.I.F.I-AT-Embedded\\build"
-  ]
+  ],
+  "idf.currentSetup": "C:/Espressif/frameworks/esp-idf-v5.3.1/"
 }
