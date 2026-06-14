@@ -49,4 +49,5 @@ void app_main(void) {
     ESP_LOGI(TAG, "[step 6] Starting tasks!");
     xTaskCreate(espnow_csi_send, "espnow_csi_send", 4096, NULL, 5, NULL);
     xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL);
+    xTaskCreate(heartbeat_task, "heartbeat_task", 4096, NULL, 5, NULL);
 }

@@ -1,8 +1,9 @@
 #include "espnowAP.h"
+#define WIFI_CONNECTED_BIT BIT0
 
 const static char* TAG = "ESP-NOW-AP";
 static EventGroupHandle_t wifiEventGroup;
-#define WIFI_CONNECTED_BIT BIT0
+uint8_t networkFlag = 0;
 
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -12,10 +13,13 @@ void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* 
         ESP_LOGI(TAG, "WiFi STA 시작, 공유기 접속 시도");
     }
     else if (eventBase == WIFI_EVENT && eventId == WIFI_EVENT_STA_DISCONNECTED) {
+        networkFlag = 0;
         ESP_LOGI(TAG, "공유기 연결 끊김, 재접속");
         esp_wifi_connect();
     }
     else if (eventBase == IP_EVENT && eventId == IP_EVENT_STA_GOT_IP) {
+        networkFlag = 1;
+
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) eventData;
         ESP_LOGI(TAG, "IP 받음: " IPSTR, IP2STR(&event->ip_info.ip));
         xEventGroupSetBits(wifiEventGroup, WIFI_CONNECTED_BIT);
@@ -63,8 +67,8 @@ esp_err_t wifiInit(void) {
 
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = CONFIG_ESP_WIFI_SSID,
-            .password = CONFIG_ESP_WIFI_PASSWORD,
+            .ssid = id,
+            .password = passwd,
             .threshold.authmode = WIFI_AUTH_WPA2_PSK,
         },
     };

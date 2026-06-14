@@ -1,5 +1,6 @@
 #include "headers.h"
 #include "originFunc.h"
+#include "APconfig.h"
 
 static const char *TAG = "App MQTT";
 #define BROKER_ADDRESS_URI "mqtt://192.168.0.10:1883"
@@ -19,6 +20,7 @@ esp_err_t mqtt_publish(const char* topic, const char* data, int qos) {
         return ESP_FAIL;
     }
 
+    ESP_LOGI(TAG, "새로운 메시지 발행, msg_id=%d", msg_id);
     return ESP_OK;
 }
 
@@ -35,14 +37,11 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED, MQTT 연결 성공");
         s_mqtt_connected = true;
 
+        // Broker 구독
         esp_mqtt_client_subscribe(client, "wify/device01/command", 1);
-        msg_id = esp_mqtt_client_publish(client, "wify/device01/status", "Board conneted!", 0, 1, 1);
-        if (msg_id < 0) {
-            ESP_LOGE(TAG, "메시지 전송 문제 발생");
-            ESP_LOGE(TAG, "보드 연결 메시지 전송 실패");
-        }
-
-        ESP_LOGI(TAG, "connect 메시지 발행, msg_id=%d", msg_id);
+        ESP_ERROR_CHECK(mqtt_publish( "wify/device01/status", "online", 1));
+        network_status();
+        network_settings();
         break;
 
     case MQTT_EVENT_DISCONNECTED:
@@ -57,6 +56,7 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
 
     case MQTT_EVENT_ERROR:
         ESP_LOGE(TAG, "MQTT_EVENT_ERROR, MQTT 이벤트 에러 발생");
+        break;
 
     default:
         ESP_LOGI(TAG, "예측되지 않은 event id : %d", event->event_id);
@@ -82,3 +82,6 @@ void mqtt5_init(void* pvParameters) {
     esp_mqtt_client_register_event(s_client, ESP_EVENT_ANY_ID, mqtt5_event_handler, NULL);
     esp_mqtt_client_start(s_client);
 }
+
+// 발행 데이터에 따른 행동 처리 (server -> esp)
+// 내 발행 데이터 (esp -> server)

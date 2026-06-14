@@ -1,5 +1,6 @@
 idf_component_register(
-    SRCS "AppMQTT.c"
-    PRIV_REQUIRES mqtt nvs_flash esp_netif INCLUDE_DIRS "."
+    SRCS "AppMQTTSend.c" "AppMQTT.c"
     INCLUDE_DIRS "./include"
+    REQUIRES mqtt esp_timer nvs_flash
+    PRIV_REQUIRES esp_netif APcommon espnow
 )

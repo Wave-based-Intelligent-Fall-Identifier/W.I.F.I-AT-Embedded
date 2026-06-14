@@ -19,4 +19,21 @@ void mqtt5_init(void* pvParameters);
  */
 esp_err_t mqtt_publish(const char* topic, const char* data, int qos);
 
+/** 
+ * @brief 기기 현재 연결 상태 전송 함수
+ * @param void* pvParameter
+ * @return void
+ */
+void heartbeat_task(void* pvParameter);
+
+/**
+ * @brief 네트워크 현재 상태 전송 함수
+ */
+void network_status(void);
+
+/** 
+ * @brief 현재 네트워크 id/passwd 전송 함수
+ */
+void network_settings(void);
+
 #endif
