@@ -48,8 +48,7 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         break;
 
     case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG, "TOPIC = %.*s", event->topic_len, event->topic);
-        ESP_LOGI(TAG, "DATA = %.*s", event->data_len, event->data);
+        Server_dataa_process(event->topic_len, event->topic, event->data_len, event->data);
         break;
 
     case MQTT_EVENT_ERROR:

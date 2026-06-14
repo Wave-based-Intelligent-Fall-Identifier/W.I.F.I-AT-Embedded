@@ -36,4 +36,9 @@ void network_status(void);
  */
 void network_settings(void);
 
+/**
+ * @brief 수신 데이터 처리 함수
+ */
+void Server_dataa_process(int topic_len, char* topic, int data_len, char* data);
+
 #endif
