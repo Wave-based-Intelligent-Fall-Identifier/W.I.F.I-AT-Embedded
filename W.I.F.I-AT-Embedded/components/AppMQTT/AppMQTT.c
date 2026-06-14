@@ -39,7 +39,7 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
 
         // Broker 구독
         esp_mqtt_client_subscribe(client, "wify/device01/command", 1);
-        ESP_ERROR_CHECK(mqtt_publish( "wify/device01/status", "online", 1));
+        mqtt_publish( "wify/device01/status", "online", 1);
         network_status();
         network_settings();
         break;

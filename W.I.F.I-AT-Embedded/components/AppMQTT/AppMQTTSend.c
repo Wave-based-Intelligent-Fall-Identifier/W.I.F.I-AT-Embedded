@@ -8,7 +8,7 @@ void heartbeat_task(void* pvParameter) {
     char payload[64];
     while (1) {
         snprintf(payload, sizeof(payload), "{\"alive\":true,\"uptime\":%lld}", esp_timer_get_time() / 1000000); 
-        ESP_ERROR_CHECK(mqtt_publish("wify/device01/heartbeat", payload, 0));
+        mqtt_publish("wify/device01/heartbeat", payload, 0);
         vTaskDelay(pdMS_TO_TICKS(30000)); // 30초, QoS : 0
     }
 }   
@@ -22,7 +22,7 @@ void network_status(void) {
 
     char payload[64];
     snprintf(payload, sizeof(payload), "{\"network\":%s}", networkFlag ? "connect" : "disconnected");
-    ESP_ERROR_CHECK(mqtt_publish("wify/device01/network/status", payload, 1));
+    mqtt_publish("wify/device01/network/status", payload, 1);
     
 }
 
@@ -31,5 +31,5 @@ void network_settings(void) {
     char payload[64];
     snprintf(payload, sizeof(payload), "{\"networkid\":%s\"networkpasswd\":%s}", id, passwd);
 
-    ESP_ERROR_CHECK(mqtt_publish("wify/device01/nownetwork", payload, 1));
+    mqtt_publish("wify/device01/nownetwork", payload, 1);
 }
