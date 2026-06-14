@@ -3,8 +3,11 @@
 
 #include "headers.h"
 
-static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
-static void log_error_if_nonzero(const char *message, int error_code);
-static void print_user_property(mqtt5_user_property_handle_t user_property);
+/**
+ * @brief mqtt5 초기화 및 핸들러 등록 함수
+ * @param void* pvParameters
+ * @return void
+ */
+void mqtt5_init(void* pvParameters);
 
 #endif
