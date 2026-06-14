@@ -28,8 +28,6 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%" PRIi32, base, event_id);
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
-    int msg_id;
-    
     ESP_LOGD(TAG, "사용 가능 heap size : %" PRIu32 ", minimum %" PRIu32, esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
 
     switch ((esp_mqtt_event_id_t)event_id) {
@@ -82,6 +80,3 @@ void mqtt5_init(void* pvParameters) {
     esp_mqtt_client_register_event(s_client, ESP_EVENT_ANY_ID, mqtt5_event_handler, NULL);
     esp_mqtt_client_start(s_client);
 }
-
-// 발행 데이터에 따른 행동 처리 (server -> esp)
-// 내 발행 데이터 (esp -> server)
