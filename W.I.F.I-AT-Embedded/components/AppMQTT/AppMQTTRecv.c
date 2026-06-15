@@ -1,5 +1,6 @@
 #include "headers.h"
 #include "originFunc.h"
+#include "common_struct.h"
 
 static const char *TAG = "MQTT Recv";
 
@@ -7,9 +8,9 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     static char new_ssid[33] = {0};
     static char new_passwd[65] = {0};
 
-    if (topic_len == strlen("wify/device01/baseline") && strncmp(topic, "wify/device01/baseline", topic_len) == 0) {
+    if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline", topic_len) == 0) {
         ESP_LOGI(TAG, "baseline 재설정 명령 수신");
-        // Baseline 함수는 다른 레포에 있는데....하
+        
     }
 
     else if (topic_len == strlen("wify/device01/edif/nownetwork") && strncmp(topic, "wify/device01/edif/nownetwork", topic_len) == 0) {

@@ -7,6 +7,8 @@
 #include "gpio_definitions.h"
 #include "originFunc.h"
 #include "espAI.h"
+#include "baseline.h"
+#include "common_struct.h"
 
 const static char* TAG = "Main";
 SemaphoreHandle_t nowMutex = NULL;
@@ -42,6 +44,20 @@ void app_main(void) {
 
     ESP_LOGI(TAG, "[step 4] Initializing Peripherals...");
     gpio_pin_init();
+
+    #ifndef BASELINE_FIRST_SET
+    #define BASELINE_FIRST_SET
+    extern csi_baseline_t fd;
+        
+    esp_err_t err = baseline_init(&fd);
+    if (err) {
+        ESP_LOGI(TAG, "Baseline 첫 생성");
+    }
+    else {
+        ESP_LOGE(TAG, "Baseline 생성 실패");
+    }
+    #endif 
+    
 
     ESP_LOGI(TAG, "[step 5] Starting MQTT...");
     mqtt5_init(NULL);
