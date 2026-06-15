@@ -8,9 +8,16 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     static char new_ssid[33] = {0};
     static char new_passwd[65] = {0};
 
-    if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline", topic_len) == 0) {
+    if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline/cmd", topic_len) == 0) {
         ESP_LOGI(TAG, "baseline 재설정 명령 수신");
-        
+
+        esp_err_t err = baseline_init(&g_baseline);
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "Baseline 첫 생성");
+        }
+        else {
+            ESP_LOGE(TAG, "Baseline 생성 실패");
+        }
     }
 
     else if (topic_len == strlen("wify/device01/edif/nownetwork") && strncmp(topic, "wify/device01/edif/nownetwork", topic_len) == 0) {

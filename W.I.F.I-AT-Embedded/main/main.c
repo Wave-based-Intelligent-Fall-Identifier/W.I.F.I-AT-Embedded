@@ -43,29 +43,24 @@ void app_main(void) {
     ESP_ERROR_CHECK(espnowInit());
 
     ESP_LOGI(TAG, "[step 4] Initializing Peripherals...");
-    gpio_pin_init();
-
-    #ifndef BASELINE_FIRST_SET
-    #define BASELINE_FIRST_SET
-    extern csi_baseline_t fd;
-        
-    esp_err_t err = baseline_init(&fd);
-    if (err) {
-        ESP_LOGI(TAG, "Baseline 첫 생성");
-    }
-    else {
-        ESP_LOGE(TAG, "Baseline 생성 실패");
-    }
-    #endif 
-    
+    gpio_pin_init(); 
 
     ESP_LOGI(TAG, "[step 5] Starting MQTT...");
     mqtt5_init(NULL);
 
-    // [step 6] 태스크 생성
-    ESP_LOGI(TAG, "[step 6] Starting tasks!");
-    xTaskCreate(espnow_csi_send, "espnow_csi_send", 4096, NULL, 5, NULL);
+    ESP_LOGI(TAG, "[step 6] Initializing baseline & CSI receive...");
+    esp_err_t err = baseline_init(&g_baseline);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "baseline 초기화 성공");
+    } else {
+        ESP_LOGE(TAG, "baseline 초기화 실패");
+    }
+    ESP_ERROR_CHECK(csi_recv_init());
+    
+
+    // [step 7] 태스크 생성
+    ESP_LOGI(TAG, "[step 7] Starting tasks!");
     xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL);
     xTaskCreate(heartbeat_task, "heartbeat_task", 4096, NULL, 5, NULL);
-    xTaskCreate(esp_ai_task, "esp_ai_task", 4096, NULL, 5, NULL);
+    xTaskCreate(esp_ai_task, "esp_ai_task", 6144, NULL, 5, NULL);
 }

@@ -1,6 +1,8 @@
 #include "baseline.h"
 #include "common_struct.h"
 
+csi_baseline_t g_baseline;
+
 esp_err_t baseline_init(csi_baseline_t *bf) {
     if (!bf) {
         return ESP_FAIL;
@@ -37,9 +39,9 @@ void baseline_refresh(csi_baseline_t *bf, const float *amp) {
         return;
     }
 
-    const float a = BASELINE_EMA_ALPHA;
+    const float temp = BASELINE_EMA_ALPHA;
     for (int i = 0; i < CSI_N_SUBCARRIER; i++) {
-        bf->baseline[i] += a * (amp[i] - bf->baseline[i]);
+        bf->baseline[i] += temp * (amp[i] - bf->baseline[i]);
     }
 }
 

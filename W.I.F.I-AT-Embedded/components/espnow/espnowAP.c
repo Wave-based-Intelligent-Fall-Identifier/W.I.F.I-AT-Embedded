@@ -1,9 +1,12 @@
 #include "espnowAP.h"
+#include "common_struct.h"
 #define WIFI_CONNECTED_BIT BIT0
 
 const static char* TAG = "ESP-NOW-AP";
 static EventGroupHandle_t wifiEventGroup;
 uint8_t networkFlag = 0;
+
+QueueHandle_t g_csi_queue = NULL;
 
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -113,19 +116,63 @@ esp_err_t espnowInit(void) {
     return ESP_OK;
 }
 
-void espnow_csi_send(void* pvParameter) {
-    while(1) {
-        espnow_payload_t payload;
-        payload.command = 0;
-
-        if (xSemaphoreTake(nowMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
-            esp_now_send(RX_MAC_ADDRESS, (uint8_t *)&payload, sizeof(payload));
-            xSemaphoreGive(nowMutex);
-        }
-        else {
-            ESP_LOGE(TAG, "Mutex 획득 실패, CSI 전송 불가");
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(20));
+static void csi_rx_cb(void *ctx, wifi_csi_info_t *info) {
+    if (!info || !info->buf || info->len <= 0 || g_csi_queue == NULL) {
+        return;
     }
+
+    static bool logged = false;
+    if (!logged) {
+        logged = true;
+        ESP_LOGI(TAG, "CSI len=%d bytes (subcarriers=%d)", info->len, info->len / 2);
+    }
+
+    csi_raw_t raw;
+    uint16_t n = (info->len > CSI_RAW_MAX_LEN) ? CSI_RAW_MAX_LEN : info->len;
+    memcpy(raw.buf, info->buf, n);
+    raw.len = n;
+
+    xQueueSend(g_csi_queue, &raw, 0);
+}
+
+esp_err_t csi_recv_init(void) {
+    esp_err_t err;
+
+    g_csi_queue = xQueueCreate(CSI_QUEUE_LEN, sizeof(csi_raw_t));
+    if (g_csi_queue == NULL) {
+        ESP_LOGE(TAG, "CSI 큐 생성 실패");
+        return ESP_ERR_NO_MEM;
+    }
+
+    wifi_csi_config_t csi_config = {
+        .lltf_en           = true,
+        .htltf_en          = true,
+        .stbc_htltf2_en    = true,
+        .ltf_merge_en      = true,
+        .channel_filter_en = true,
+        .manu_scale        = false,
+        .shift             = 0,
+        .dump_ack_en       = false,
+    };
+
+    err = esp_wifi_set_csi_config(&csi_config);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "CSI config 실패: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = esp_wifi_set_csi_rx_cb(csi_rx_cb, NULL);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "CSI rx 콜백 등록 실패: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = esp_wifi_set_csi(true);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "CSI 활성화 실패: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    ESP_LOGI(TAG, "CSI 수신 초기화 성공");
+    return ESP_OK;
 }
