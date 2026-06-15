@@ -5,6 +5,9 @@
 #include "freertos/FreeRTOS.h"  
 #include "freertos/semphr.h"
 
+#define id "wi_dje21"
+#define passwd "Djedsmhspw20215!"
+
 typedef struct espnow_payload_t{
     uint8_t command;
 } espnow_payload_t;

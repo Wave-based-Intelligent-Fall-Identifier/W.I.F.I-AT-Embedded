@@ -1,4 +1,5 @@
 #include "pir-sensor.h"
+#include "originFunc.h"
 
 const static char *TAG = "Pir-Sensor";
 const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -12,6 +13,7 @@ void pir_sensor(void* pvParameters) {
     // PIR이 사람을 감지함, 10분 타이머 리셋 
     if (cause == ESP_SLEEP_WAKEUP_EXT1) {
         ESP_LOGI(TAG, "사람 감지, 10분간 CSI 전송 모드 유지");
+        mqtt_publish("wify/device01/restroom", "ACT", 1);
 
         if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
             payload.command = 1; 
@@ -37,6 +39,7 @@ void pir_sensor(void* pvParameters) {
         }
 
         ESP_LOGI(TAG, "10분 경과, DeepSleep 시작");
+        mqtt_publish("wify/device01/restroom", "DEACT", 1);
         
         if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
             payload.command = 2;
@@ -62,6 +65,7 @@ void pir_sensor(void* pvParameters) {
     // 초기 부팅, PIR만 세팅
     else {
         ESP_LOGI(TAG, "초기 부팅. PIR 대기 모드로 변경합니다.");
+        mqtt_publish("wify/device01/restroom", "LOAD", 1);
         esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
     }
     esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);

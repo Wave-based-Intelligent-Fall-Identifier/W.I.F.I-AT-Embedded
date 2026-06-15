@@ -28,3 +28,4 @@
 esp_err_t wifiInit(void);
 void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData);
 void espnow_csi_send(void* pvParameter);
+esp_err_t espnowInit(void);
