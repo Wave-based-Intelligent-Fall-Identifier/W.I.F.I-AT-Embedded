@@ -8,7 +8,7 @@ uint8_t networkFlag = 0;
 
 QueueHandle_t g_csi_queue = NULL;
 
-const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+const static uint8_t RX_MAC_ADDRESS[6] = AP_MAC_ADDRESS;
 
 void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData) {
     if (eventBase == WIFI_EVENT && eventId == WIFI_EVENT_STA_START) {

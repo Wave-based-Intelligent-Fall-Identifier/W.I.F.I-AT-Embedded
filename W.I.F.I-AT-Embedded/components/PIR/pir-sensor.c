@@ -2,7 +2,7 @@
 #include "originFunc.h"
 
 const static char *TAG = "Pir-Sensor";
-const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+const static uint8_t RX_MAC_ADDRESS[6] = AP_MAC_ADDRESS;
 
 void pir_sensor(void* pvParameters) {
     esp_err_t err;
