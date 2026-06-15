@@ -17,7 +17,8 @@ void mqtt5_init(void* pvParameters);
  *  - data  : 전송 데이터
  *  - qos   : 전송 품질 (1 권장)
  */
-esp_err_t mqtt_publish(const char* topic, const char* data, int qos);
+esp_err_t mqtt_publish(const char* topic, const char* data, int qos, int max_retry);
+
 
 /** 
  * @brief 기기 현재 연결 상태 전송 함수
@@ -40,5 +41,10 @@ void network_settings(void);
  * @brief 수신 데이터 처리 함수
  */
 void Server_dataa_process(int topic_len, char* topic, int data_len, char* data);
+
+/**
+ * @brief 네트워크 id/passwd 재입력 요구 메시지 전송 함수
+ */
+void network_settings_send_again(void);
 
 #endif

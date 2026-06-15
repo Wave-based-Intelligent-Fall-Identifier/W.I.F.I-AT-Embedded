@@ -11,7 +11,6 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-
 /**
  * @brief AI 추론 태스크
  * @param void* pvParameter

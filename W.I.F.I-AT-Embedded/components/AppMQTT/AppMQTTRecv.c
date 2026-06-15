@@ -46,6 +46,8 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
             ESP_LOGI(TAG, "파싱 결과 ssid=%s, passwd=%s", new_ssid, new_passwd);
         } else {
             ESP_LOGE(TAG, "id/passwd 형식 오류");
+            network_settings_send_again();
+            return;
         }
     }
 

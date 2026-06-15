@@ -8,6 +8,8 @@
 #define id "wi_dje21"
 #define passwd "Djedsmhspw20215!"
 
+#define BROKER_ADDRESS_URI "mqtt://192.168.0.10:1883"
+
 typedef struct espnow_payload_t{
     uint8_t command;
 } espnow_payload_t;

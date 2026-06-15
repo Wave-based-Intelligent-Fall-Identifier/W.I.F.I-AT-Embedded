@@ -6,6 +6,7 @@
 #include "espnowAP.h"
 #include "gpio_definitions.h"
 #include "originFunc.h"
+#include "espAI.h"
 
 const static char* TAG = "Main";
 SemaphoreHandle_t nowMutex = NULL;
@@ -50,4 +51,5 @@ void app_main(void) {
     xTaskCreate(espnow_csi_send, "espnow_csi_send", 4096, NULL, 5, NULL);
     xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL);
     xTaskCreate(heartbeat_task, "heartbeat_task", 4096, NULL, 5, NULL);
+    xTaskCreate(esp_ai_task, "esp_ai_task", 4096, NULL, 5, NULL);
 }
