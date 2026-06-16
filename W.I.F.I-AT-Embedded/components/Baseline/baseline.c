@@ -1,7 +1,9 @@
 #include "baseline.h"
 #include "common_struct.h"
+#include "originFunc.h"
 
 csi_baseline_t g_baseline;
+static const char *TAG = "Baseline";
 
 esp_err_t baseline_init(csi_baseline_t *bf) {
     if (!bf) {
@@ -13,6 +15,8 @@ esp_err_t baseline_init(csi_baseline_t *bf) {
     bf->sample_count = 0;
     bf->ready = false;
 
+    ESP_LOGI(TAG, "Baseline 재학습 종료, 완료 메시지 송신 / topic : wifi/device01/baseline/status");
+    mqtt_publish("wifi/device01/baseline/status", "BASELINEDONE", 1, 3);
     return ESP_OK;
 }
 

@@ -20,7 +20,7 @@ void app_main(void) {
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     ESP_LOGI(TAG, "[step 1] Creating Mutex...");
-    uint8_t retry_count = 0;
+    uint8_t retry_count = 0; 
     nowMutex = xSemaphoreCreateMutex();
     if (nowMutex == NULL) {
         ESP_LOGE(TAG, "Mutex 생성 실패");

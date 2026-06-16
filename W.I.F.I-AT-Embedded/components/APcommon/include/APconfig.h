@@ -5,8 +5,8 @@
 #include "freertos/FreeRTOS.h"  
 #include "freertos/semphr.h"
 
-#define id "wi_dje21"
-#define passwd "Djedsmhspw20215!"
+#define id "dd"
+#define passwd "ekdus825"
 
 #define BROKER_ADDRESS_URI "mqtt://192.168.0.10:1883"
 

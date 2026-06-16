@@ -9,14 +9,19 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     static char new_passwd[65] = {0};
 
     if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline/cmd", topic_len) == 0) {
-        ESP_LOGI(TAG, "baseline 재설정 명령 수신");
+        if (strncmp(data, "BASELINEREBUILD", data_len) == 0) {
+            ESP_LOGI(TAG, "baseline 재설정 명령 수신");
 
-        esp_err_t err = baseline_init(&g_baseline);
-        if (err == ESP_OK) {
-            ESP_LOGI(TAG, "Baseline 첫 생성");
+            esp_err_t err = baseline_init(&g_baseline);
+            if (err == ESP_OK) {
+                ESP_LOGI(TAG, "Baseline 첫 생성");
+            }
+            else {
+                ESP_LOGE(TAG, "Baseline 생성 실패");
+            }
         }
         else {
-            ESP_LOGE(TAG, "Baseline 생성 실패");
+            ESP_LOGW(TAG, "Topic과 Data가 매칭되지 않음, Notion MQTT Topic Table 참고");
         }
     }
 
@@ -60,35 +65,41 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     }
 
     else if (topic_len == strlen("wify/device01/edit/editnetwork") && strncmp(topic, "wify/device01/edit/editnetwork", topic_len) == 0) {
-        ESP_LOGI(TAG, "새로운 id/passwd 적용");
+        if (strncmp(data, "NEWNETWORKEDIT", data_len) == 0) {
+            ESP_LOGI(TAG, "새로운 id/passwd 적용");
 
-        if (strlen(new_ssid) == 0) {
-            ESP_LOGW(TAG, "저장된 ssid 없음, 먼저 nownetwork로 입력 필요");
-            return;
+            if (strlen(new_ssid) == 0) {
+                ESP_LOGW(TAG, "저장된 ssid 없음, 먼저 nownetwork로 입력 필요");
+                return;
+            }
+
+            esp_wifi_disconnect();
+            wifi_config_t wifi_config = {0};
+            strncpy((char*)wifi_config.sta.ssid, new_ssid, sizeof(wifi_config.sta.ssid) - 1);
+            strncpy((char*)wifi_config.sta.password, new_passwd, sizeof(wifi_config.sta.password) - 1);
+            wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+
+            esp_err_t err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "새 Wi-Fi 설정 실패");
+                return;
+            }
+
+            err = esp_wifi_connect();
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "재연결 시도 실패");
+                return;
+            }
+
+            ESP_LOGI(TAG, "새 Wi-Fi로 재연결 시도 중...");
         }
 
-        esp_wifi_disconnect();
-        wifi_config_t wifi_config = {0};
-        strncpy((char*)wifi_config.sta.ssid, new_ssid, sizeof(wifi_config.sta.ssid) - 1);
-        strncpy((char*)wifi_config.sta.password, new_passwd, sizeof(wifi_config.sta.password) - 1);
-        wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
-
-        esp_err_t err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "새 Wi-Fi 설정 실패");
-            return;
+        else {
+            ESP_LOGW(TAG, "예상되지 않은 Topic 수신");
         }
-
-        err = esp_wifi_connect();
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "재연결 시도 실패");
-            return;
-        }
-
-        ESP_LOGI(TAG, "새 Wi-Fi로 재연결 시도 중...");
     }
 
     else {
-        ESP_LOGW(TAG, "예상되지 않은 Topic 수신");
+        ESP_LOGW(TAG, "Topic과 Data가 매칭되지 않음, Notion MQTT Topic Table 참고");
     }
 }
