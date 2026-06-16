@@ -10,15 +10,8 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
 
     if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline/cmd", topic_len) == 0) {
         if (strncmp(data, "BASELINEREBUILD", data_len) == 0) {
-            ESP_LOGI(TAG, "baseline 재설정 명령 수신");
-
-            esp_err_t err = baseline_init(&g_baseline);
-            if (err == ESP_OK) {
-                ESP_LOGI(TAG, "Baseline 첫 생성");
-            }
-            else {
-                ESP_LOGE(TAG, "Baseline 생성 실패");
-            }
+            g_baseline_reset_req = true;
+            ESP_LOGI(TAG, "baseline 재설정 명령 수신, 다음 CSI 프레임에 재탐지");
         }
         else {
             ESP_LOGW(TAG, "Topic과 Data가 매칭되지 않음, Notion MQTT Topic Table 참고");

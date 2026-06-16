@@ -11,6 +11,7 @@ void esp_ai_task(void* pvParameter) {
     csi_raw_t raw;
     float amp[CSI_N_SUBCARRIER];
     float residual[CSI_N_SUBCARRIER];
+    float energy;
 
     ESP_LOGI(TAG, "CSI 처리 task 시작, baseline 캘리브레이션 대기");
 
@@ -20,13 +21,20 @@ void esp_ai_task(void* pvParameter) {
             continue;
         }
 
+        // 안전하게 한 번 더 검사 
+        if (g_baseline_reset_req) {
+            g_baseline_reset_req = false;
+            baseline_init(&g_baseline);
+            ESP_LOGI(TAG, "Baseline 재탐지 시작"); 
+        }
+
         int n = raw.len / 2;
         if (n > CSI_N_SUBCARRIER) {
             n = CSI_N_SUBCARRIER;
         }
         for (int i = 0; i < n; i++) {
             float im = (float)raw.buf[2 * i];
-            float re = (float)raw.buf[2 * i + 1];
+            float re = (float)raw.buf[2 * i + 1]; 
             amp[i] = sqrtf(re * re + im * im);
         }
         for (int i = n; i < CSI_N_SUBCARRIER; i++) {
@@ -44,12 +52,7 @@ void esp_ai_task(void* pvParameter) {
         baseline_apply(&g_baseline, amp, residual);
         // TODO: residual 을 링버퍼에 적재 후 AI 추론(낙상 분류)에 사용
 
-        // --- 움직임 강도 ---
-        float energy = baseline_motion_energy(&g_baseline, amp);
-
-        // --- 빈방이 확실할 때만 baseline 을 천천히 갱신 ---
-        // 움직임이 임계값 미만 AND PIR 미감지(LOW=사람 없음)일 때만 호출.
-        // 사람이 정지해 있어도 PIR 이 HIGH 면 갱신을 막아 '쓰러진 사람'을 배경으로 흡수하지 않는다.
+        energy = baseline_motion_energy(&g_baseline, amp);
         if (energy < BASELINE_REFRESH_THRESHOLD && gpio_get_level(PIR_SENSOR_PIN) == 0) {
             baseline_refresh(&g_baseline, amp);
         }

@@ -3,6 +3,7 @@
 #include "originFunc.h"
 
 csi_baseline_t g_baseline;
+volatile bool g_baseline_reset_req = false;
 static const char *TAG = "Baseline";
 
 esp_err_t baseline_init(csi_baseline_t *bf) {

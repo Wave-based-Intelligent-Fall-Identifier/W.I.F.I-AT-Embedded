@@ -89,4 +89,5 @@ float baseline_motion_energy(const csi_baseline_t *bf, const float *amp);
 bool baseline_is_ready(const csi_baseline_t *bf);
  
 extern csi_baseline_t g_baseline;
+extern volatile bool g_baseline_reset_req;
 #endif 
