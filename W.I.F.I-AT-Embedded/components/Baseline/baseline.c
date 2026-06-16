@@ -17,7 +17,7 @@ esp_err_t baseline_init(csi_baseline_t *bf) {
     bf->ready = false;
 
     ESP_LOGI(TAG, "Baseline 재학습 종료, 완료 메시지 송신 / topic : wifi/device01/baseline/status");
-    mqtt_publish("wifi/device01/baseline/status", "BASELINEDONE", 1, 3);
+    mqtt_publish("wify/device01/baseline/status", "BASELINEDONE", 1, 3);
     return ESP_OK;
 }
 
@@ -36,6 +36,9 @@ void baseline_update(csi_baseline_t *bf, const float *amp) {
             bf->baseline[i] = bf->sum[i] / (float)bf->sample_count;
         }
         bf->ready = true;
+
+        ESP_LOGI(TAG, "Baseline 캘리브레이션 완료, 완료 메시지 송신 / topic : wify/device01/baseline/status");
+        mqtt_publish("wify/device01/baseline/status", "BASELINEDONE", 1, 3);
     }
 }
 

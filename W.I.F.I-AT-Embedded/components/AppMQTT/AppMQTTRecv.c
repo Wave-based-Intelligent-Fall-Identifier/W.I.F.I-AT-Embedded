@@ -9,7 +9,7 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     static char new_passwd[65] = {0};
 
     if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline/cmd", topic_len) == 0) {
-        if (strncmp(data, "BASELINEREBUILD", data_len) == 0) {
+        if (data_len == (int)strlen("BASELINEREBUILD") && strncmp(data, "BASELINEREBUILD", data_len) == 0) {
             g_baseline_reset_req = true;
             ESP_LOGI(TAG, "baseline 재설정 명령 수신, 다음 CSI 프레임에 재탐지");
         }
@@ -18,7 +18,7 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
         }
     }
 
-    else if (topic_len == strlen("wify/device01/edif/nownetwork") && strncmp(topic, "wify/device01/edif/nownetwork", topic_len) == 0) {
+    else if (topic_len == strlen("wify/device01/edit/nownetwork") && strncmp(topic, "wify/device01/edit/nownetwork", topic_len) == 0) {
         ESP_LOGI(TAG, "새로운 id/passwd 입력");
 
         char buf[128];
@@ -58,7 +58,7 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     }
 
     else if (topic_len == strlen("wify/device01/edit/editnetwork") && strncmp(topic, "wify/device01/edit/editnetwork", topic_len) == 0) {
-        if (strncmp(data, "NEWNETWORKEDIT", data_len) == 0) {
+        if (data_len == (int)strlen("NEWNETWORKEDIT") && strncmp(data, "NEWNETWORKEDIT", data_len) == 0) {
             ESP_LOGI(TAG, "새로운 id/passwd 적용");
 
             if (strlen(new_ssid) == 0) {

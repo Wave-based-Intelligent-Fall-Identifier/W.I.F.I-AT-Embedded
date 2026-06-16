@@ -39,8 +39,14 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED, MQTT 연결 성공");
         s_mqtt_connected = true;
 
-        // Broker 구독
-        esp_mqtt_client_subscribe(client, "wify/device01/command", 1);
+        /*
+        Topic 구독 -> 와일드카드로 처리
+        추후 확장 시 device01 -> deviceN에 대해 N을 받는 로직 필요
+        */
+        esp_mqtt_client_subscribe(client, "wify/device01/baseline/cmd", 1);
+        esp_mqtt_client_subscribe(client, "wify/device01/edit/nownetwork", 1);
+        esp_mqtt_client_subscribe(client, "wify/device01/edit/editnetwork", 1);
+        
         mqtt_publish( "wify/device01/status", "online", 1, 3);
         network_status();
         network_settings();
