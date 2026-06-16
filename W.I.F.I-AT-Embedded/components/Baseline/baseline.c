@@ -16,8 +16,8 @@ esp_err_t baseline_init(csi_baseline_t *bf) {
     bf->sample_count = 0;
     bf->ready = false;
 
-    ESP_LOGI(TAG, "Baseline 재학습 종료, 완료 메시지 송신 / topic : wifi/device01/baseline/status");
-    mqtt_publish("wify/device01/baseline/status", "BASELINEDONE", 1, 3);
+    ESP_LOGI(TAG, "Baseline 재학습 시작, 시작 메시지 송신 / topic : wify/device01/baseline/status");
+    mqtt_publish("wify/device01/baseline/status", "BASELINESTART", 1, 3);
     return ESP_OK;
 }
 

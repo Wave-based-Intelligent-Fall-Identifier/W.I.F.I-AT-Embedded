@@ -82,7 +82,10 @@ esp_err_t wifiInit(void) {
 
     ESP_LOGI(TAG, "WiFi 초기화 성공, 연결 대기 중");
 
-    xEventGroupWaitBits(wifiEventGroup, WIFI_CONNECTED_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
+    EventBits_t bits = xEventGroupWaitBits(wifiEventGroup, WIFI_CONNECTED_BIT, pdFALSE, pdTRUE, pdMS_TO_TICKS(15000));
+    if (!(bits & WIFI_CONNECTED_BIT)) {
+        ESP_LOGW(TAG, "WiFi 연결 대기 시간 초과, 백그라운드에서 재연결 시도 계속");
+    }
     return ESP_OK;
 }
 

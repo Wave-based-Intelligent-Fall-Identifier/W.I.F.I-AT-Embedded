@@ -42,9 +42,11 @@ void esp_ai_task(void* pvParameter) {
         }
 
         if (!baseline_is_ready(&g_baseline)) {
-            baseline_update(&g_baseline, amp);
-            if (baseline_is_ready(&g_baseline)) {
-                ESP_LOGI(TAG, "baseline ready=true (캘리브레이션 완료)");
+            if (gpio_get_level(PIR_SENSOR_PIN) == 0) {
+                baseline_update(&g_baseline, amp);
+                if (baseline_is_ready(&g_baseline)) {
+                    ESP_LOGI(TAG, "baseline ready=true (캘리브레이션 완료)");
+                }
             }
             continue;
         }

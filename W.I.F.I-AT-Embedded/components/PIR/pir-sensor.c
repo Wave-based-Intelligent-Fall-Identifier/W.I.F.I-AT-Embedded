@@ -69,5 +69,6 @@ void pir_sensor(void* pvParameters) {
         esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
     }
     esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
+    vTaskDelay(pdMS_TO_TICKS(500));
     esp_deep_sleep_start();
 }

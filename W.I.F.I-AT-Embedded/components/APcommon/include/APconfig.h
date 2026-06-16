@@ -18,6 +18,5 @@ typedef struct espnow_payload_t{
 } espnow_payload_t;
 
 extern SemaphoreHandle_t nowMutex;
-extern uint8_t retry_count;
 
 #endif
