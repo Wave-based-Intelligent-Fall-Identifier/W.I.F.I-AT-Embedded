@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "nvs.h"
+
 #ifndef CSI_N_SUBCARRIER
 // WiFi 채널 분리
 #define CSI_N_SUBCARRIER 52
@@ -87,7 +89,11 @@ float baseline_motion_energy(const csi_baseline_t *bf, const float *amp);
  * @brief BASELINE_CALIB_FRAMES가 모두 찼는지 검사하는 함수
  */
 bool baseline_is_ready(const csi_baseline_t *bf);
- 
+
+esp_err_t baseline_load_nvs(csi_baseline_t *bf);
+
 extern csi_baseline_t g_baseline;
 extern volatile bool g_baseline_reset_req;
+extern nvs_handle_t nvs_mem_handle;
+
 #endif 

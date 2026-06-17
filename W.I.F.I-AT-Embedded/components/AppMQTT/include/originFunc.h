@@ -19,6 +19,8 @@ void mqtt5_init(void* pvParameters);
  */
 esp_err_t mqtt_publish(const char* topic, const char* data, int qos, int max_retry);
 
+esp_err_t mqtt_wait_connected(uint32_t timeout_ms);
+
 
 /** 
  * @brief 기기 현재 연결 상태 전송 함수

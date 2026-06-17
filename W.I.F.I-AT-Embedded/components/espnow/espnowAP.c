@@ -1,5 +1,8 @@
 #include "espnowAP.h"
 #include "common_struct.h"
+#include "esp_netif.h"
+#include "ping/ping_sock.h"
+#include "lwip/ip_addr.h"
 #define WIFI_CONNECTED_BIT BIT0
 
 const static char* TAG = "ESP-NOW-AP";
@@ -36,17 +39,6 @@ esp_err_t wifiInit(void) {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_netif_create_default_wifi_sta();
-
-    err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-
-    if(err != ESP_OK) {
-        ESP_LOGE(TAG, "WiFi 초기화 실패");
-        return err;
-    }
 
     wifi_init_config_t wifiInitConfig = WIFI_INIT_CONFIG_DEFAULT();
     err = esp_wifi_init(&wifiInitConfig);
@@ -177,5 +169,57 @@ esp_err_t csi_recv_init(void) {
     }
 
     ESP_LOGI(TAG, "CSI 수신 초기화 성공");
+    return ESP_OK;
+}
+
+static esp_ping_handle_t s_csi_ping = NULL;
+
+static void csi_ping_noop(esp_ping_handle_t hdl, void *args) {
+}
+
+esp_err_t csi_traffic_init(void) {
+    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+    if (netif == NULL) {
+        ESP_LOGE(TAG, "STA netif 없음, CSI 트래픽 시작 불가");
+        return ESP_FAIL;
+    }
+
+    esp_netif_ip_info_t ip_info;
+    if (esp_netif_get_ip_info(netif, &ip_info) != ESP_OK || ip_info.gw.addr == 0) {
+        ESP_LOGE(TAG, "게이트웨이 IP 없음, CSI 트래픽 시작 불가");
+        return ESP_FAIL;
+    }
+
+    ip_addr_t target;
+    memset(&target, 0, sizeof(target));
+    ip4_addr_set_u32(ip_2_ip4(&target), ip_info.gw.addr);
+    IP_SET_TYPE(&target, IPADDR_TYPE_V4);
+
+    esp_ping_config_t config = ESP_PING_DEFAULT_CONFIG();
+    config.target_addr = target;
+    config.count = ESP_PING_COUNT_INFINITE;
+    config.interval_ms = CSI_PING_INTERVAL_MS;
+    config.task_stack_size = 3072;
+
+    esp_ping_callbacks_t cbs = {
+        .on_ping_success = csi_ping_noop,
+        .on_ping_timeout = csi_ping_noop,
+        .on_ping_end = csi_ping_noop,
+        .cb_args = NULL,
+    };
+
+    esp_err_t err = esp_ping_new_session(&config, &cbs, &s_csi_ping);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "CSI 트래픽 ping 세션 생성 실패: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = esp_ping_start(s_csi_ping);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "CSI 트래픽 ping 시작 실패: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    ESP_LOGI(TAG, "CSI 트래픽 생성 시작 (gateway ping, interval=%dms)", CSI_PING_INTERVAL_MS);
     return ESP_OK;
 }

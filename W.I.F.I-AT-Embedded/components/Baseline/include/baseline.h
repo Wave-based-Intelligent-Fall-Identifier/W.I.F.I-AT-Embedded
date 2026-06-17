@@ -14,5 +14,6 @@
 #include "esp_timer.h"
 
 #include "mqtt_client.h"
+#include "nvs_flash.h"
 
 #endif

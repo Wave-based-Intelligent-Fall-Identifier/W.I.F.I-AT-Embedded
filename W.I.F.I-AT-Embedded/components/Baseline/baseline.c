@@ -2,9 +2,60 @@
 #include "common_struct.h"
 #include "originFunc.h"
 
+
 csi_baseline_t g_baseline;
 volatile bool g_baseline_reset_req = false;
 static const char *TAG = "Baseline";
+
+#define BASELINE_NVS_NS  "baseline"
+#define BASELINE_NVS_KEY "data"
+
+nvs_handle_t nvs_mem_handle = 0;
+
+static esp_err_t baseline_nvs_ensure_open(void) {
+    if (nvs_mem_handle != 0) {
+        return ESP_OK;
+    }
+    esp_err_t err = nvs_open(BASELINE_NVS_NS, NVS_READWRITE, &nvs_mem_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "baseline NVS open 실패: %s", esp_err_to_name(err));
+    }
+    return err;
+}
+
+static esp_err_t baseline_save_nvs(const csi_baseline_t *bf) {
+    esp_err_t err = baseline_nvs_ensure_open();
+    if (err != ESP_OK) {
+        return err;
+    }
+    err = nvs_set_blob(nvs_mem_handle, BASELINE_NVS_KEY, bf, sizeof(*bf));
+    if (err == ESP_OK) {
+        err = nvs_commit(nvs_mem_handle);
+    }
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "baseline NVS 저장 완료");
+    } else {
+        ESP_LOGE(TAG, "baseline NVS 저장 실패: %s", esp_err_to_name(err));
+    }
+    return err;
+}
+
+esp_err_t baseline_load_nvs(csi_baseline_t *bf) {
+    if (!bf) {
+        return ESP_FAIL;
+    }
+    esp_err_t err = baseline_nvs_ensure_open();
+    if (err != ESP_OK) {
+        return err;
+    }
+    size_t len = sizeof(*bf);
+    err = nvs_get_blob(nvs_mem_handle, BASELINE_NVS_KEY, bf, &len);
+    if (err == ESP_OK && len == sizeof(*bf)) {
+        ESP_LOGI(TAG, "baseline NVS 로드 완료");
+        return ESP_OK;
+    }
+    return (err == ESP_OK) ? ESP_FAIL : err;
+}
 
 esp_err_t baseline_init(csi_baseline_t *bf) {
     if (!bf) {
@@ -15,6 +66,8 @@ esp_err_t baseline_init(csi_baseline_t *bf) {
     memset(bf->baseline, 0, sizeof(bf->baseline));
     bf->sample_count = 0;
     bf->ready = false;
+
+    
 
     ESP_LOGI(TAG, "Baseline 재학습 시작, 시작 메시지 송신 / topic : wify/device01/baseline/status");
     mqtt_publish("wify/device01/baseline/status", "BASELINESTART", 1, 3);
@@ -39,6 +92,7 @@ void baseline_update(csi_baseline_t *bf, const float *amp) {
 
         ESP_LOGI(TAG, "Baseline 캘리브레이션 완료, 완료 메시지 송신 / topic : wify/device01/baseline/status");
         mqtt_publish("wify/device01/baseline/status", "BASELINEDONE", 1, 3);
+        baseline_save_nvs(bf);
     }
 }
 

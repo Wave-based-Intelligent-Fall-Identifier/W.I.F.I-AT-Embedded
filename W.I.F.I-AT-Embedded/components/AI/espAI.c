@@ -16,15 +16,14 @@ void esp_ai_task(void* pvParameter) {
     ESP_LOGI(TAG, "CSI 처리 task 시작, baseline 캘리브레이션 대기");
 
     while (1) {
-        if (g_csi_queue == NULL ||
-            xQueueReceive(g_csi_queue, &raw, portMAX_DELAY) != pdTRUE) {
+        if (g_csi_queue == NULL || xQueueReceive(g_csi_queue, &raw, portMAX_DELAY) != pdTRUE) {
             continue;
         }
 
-        // 안전하게 한 번 더 검사 
         if (g_baseline_reset_req) {
             g_baseline_reset_req = false;
             baseline_init(&g_baseline);
+            
             ESP_LOGI(TAG, "Baseline 재탐지 시작"); 
         }
 
