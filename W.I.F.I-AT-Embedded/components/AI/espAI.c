@@ -35,8 +35,6 @@ static const float *residual_ring_get(uint16_t age) {
     return s_residual_ring.frames[idx];
 }
 
-#define FALL_INACTIVITY_EPS 0.5f
-
 static bool extract_features(float out[5]) {
     if (s_residual_ring.count < RESIDUAL_RING_LEN) {
         return false;

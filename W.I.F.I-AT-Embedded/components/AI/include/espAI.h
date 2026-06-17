@@ -21,6 +21,8 @@
 #define FALL_INFER_STRIDE 16
 #endif
 
+#define FALL_INACTIVITY_EPS 0.5f
+
 /**
  * @brief AI 추론 태스크
  * @param void* pvParameter
