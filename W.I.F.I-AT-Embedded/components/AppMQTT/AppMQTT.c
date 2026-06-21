@@ -28,6 +28,15 @@ esp_err_t mqtt_publish(const char* topic, const char* data, int qos, int max_ret
     return ESP_FAIL;
 }
 
+esp_err_t mqtt_wait_connected(uint32_t timeout_ms) {
+    uint32_t waited = 0;
+    while (!s_mqtt_connected && waited < timeout_ms) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        waited += 100;
+    }
+    return s_mqtt_connected ? ESP_OK : ESP_ERR_TIMEOUT;
+}
+
 static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%" PRIi32, base, event_id);
     esp_mqtt_event_handle_t event = event_data;
@@ -39,8 +48,14 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED, MQTT 연결 성공");
         s_mqtt_connected = true;
 
-        // Broker 구독
-        esp_mqtt_client_subscribe(client, "wify/device01/command", 1);
+        /*
+        Topic 구독 -> 와일드카드로 처리
+        추후 확장 시 device01 -> deviceN에 대해 N을 받는 로직 필요
+        */
+        esp_mqtt_client_subscribe(client, "wify/device01/baseline/cmd", 1);
+        esp_mqtt_client_subscribe(client, "wify/device01/edit/nownetwork", 1);
+        esp_mqtt_client_subscribe(client, "wify/device01/edit/editnetwork", 1);
+        
         mqtt_publish( "wify/device01/status", "online", 1, 3);
         network_status();
         network_settings();

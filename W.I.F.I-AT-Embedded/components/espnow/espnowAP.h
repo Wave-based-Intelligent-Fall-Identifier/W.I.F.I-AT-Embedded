@@ -25,7 +25,20 @@
 
 #define MAXIMUM_RETRY  5
 
+#define CSI_PING_INTERVAL_MS 50
+
 esp_err_t wifiInit(void);
 void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData);
-void espnow_csi_send(void* pvParameter);
 esp_err_t espnowInit(void);
+
+/**
+ * @brief CSI 수신 초기화 (config + rx 콜백 등록 + 활성화 + 큐 생성)
+ * @return esp_err_t
+ * @note esp_wifi_start() 이후에 호출할 것
+ */
+esp_err_t csi_recv_init(void);
+
+esp_err_t csi_traffic_init(void);
+
+// CSI 콜백이 raw 를 적재하고 처리 task 가 소비하는 큐
+extern QueueHandle_t g_csi_queue;

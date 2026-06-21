@@ -2,7 +2,7 @@
 #include "originFunc.h"
 
 const static char *TAG = "Pir-Sensor";
-const static uint8_t RX_MAC_ADDRESS[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+const static uint8_t RX_MAC_ADDRESS[6] = AP_MAC_ADDRESS;
 
 void pir_sensor(void* pvParameters) {
     esp_err_t err;
@@ -13,6 +13,10 @@ void pir_sensor(void* pvParameters) {
     // PIR이 사람을 감지함, 10분 타이머 리셋 
     if (cause == ESP_SLEEP_WAKEUP_EXT1) {
         ESP_LOGI(TAG, "사람 감지, 10분간 CSI 전송 모드 유지");
+        err = mqtt_wait_connected(5000);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "MQTT재연결 실패");
+        }
         mqtt_publish("wify/device01/restroom", "ACT", 1, 3);
 
         if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
@@ -62,12 +66,18 @@ void pir_sensor(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(100));
     }
-    // 초기 부팅, PIR만 세팅
     else {
         ESP_LOGI(TAG, "초기 부팅. PIR 대기 모드로 변경합니다.");
+        mqtt_wait_connected(5000);
         mqtt_publish("wify/device01/restroom", "LOAD", 1, 3);
         esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
     }
+#ifdef TEST
+    ESP_LOGW(TAG, "[TEST] 딥슬립 비활성화, 항시 동작 모드 유지");
+    vTaskDelete(NULL);
+#else
     esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
+    vTaskDelay(pdMS_TO_TICKS(500));
     esp_deep_sleep_start();
+#endif
 }

@@ -21,8 +21,8 @@ void network_status(void) {
     }
 
     char payload[64];
-    snprintf(payload, sizeof(payload), "{\"network\":%s}", networkFlag ? "connect" : "disconnected");
-    mqtt_publish("wify/device01/network/status", payload, 1, 3);
+    snprintf(payload, sizeof(payload), "{\"network\":\"%s\"}", networkFlag ? "connect" : "disconnected");
+    mqtt_publish("wify/device01/nownetwork/status", payload, 1, 3);
     return;
 }
 
