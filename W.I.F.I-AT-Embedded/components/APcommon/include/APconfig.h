@@ -8,10 +8,14 @@
 #define id "dd"
 #define passwd "ekdus825"
 
-#define BROKER_ADDRESS_URI "mqtt://192.168.0.10:1883"
+#define BROKER_ADDRESS_URI "mqtt://172.20.10.10:1883"
+
+// 테스트 모드: 정의하면 딥슬립 없이 항시 동작 (CSI/baseline 디버깅용)
+// 배포 시에는 반드시 주석 처리할 것
+#define TEST
 
 // 여기 MAC 수정으로 연결
-#define AP_MAC_ADDRESS {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+#define AP_MAC_ADDRESS {0x78, 0x1C, 0x3C, 0xF4, 0xAF, 0xF4}
 
 typedef struct espnow_payload_t{
     uint8_t command;

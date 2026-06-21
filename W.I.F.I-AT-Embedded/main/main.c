@@ -74,7 +74,7 @@ void app_main(void) {
 
     // [step 7] 태스크 생성
     ESP_LOGI(TAG, "[step 7] Starting tasks!");
-    xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL);
-    xTaskCreate(heartbeat_task, "heartbeat_task", 4096, NULL, 5, NULL);
-    xTaskCreate(esp_ai_task, "esp_ai_task", 6144, NULL, 5, NULL);
+    if (xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL) != pdPASS) { ESP_LOGE(TAG, "PIR TASK 생성 실패"); }
+    if (xTaskCreate(heartbeat_task, "heartbeat_task", 4096, NULL, 5, NULL) != pdPASS) { ESP_LOGE(TAG, "PIR TASK 생성 실패"); }
+    if (xTaskCreate(esp_ai_task, "esp_ai_task", 6144, NULL, 5, NULL) != pdPASS) { ESP_LOGE(TAG, "PIR TASK 생성 실패"); }
 }
