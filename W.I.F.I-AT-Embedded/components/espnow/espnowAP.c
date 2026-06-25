@@ -3,6 +3,7 @@
 #include "esp_netif.h"
 #include "ping/ping_sock.h"
 #include "lwip/ip_addr.h"
+#include "lwip/sockets.h"
 #define WIFI_CONNECTED_BIT BIT0
 
 const static char* TAG = "ESP-NOW-AP";
@@ -172,54 +173,50 @@ esp_err_t csi_recv_init(void) {
     return ESP_OK;
 }
 
-static esp_ping_handle_t s_csi_ping = NULL;
+/**
+ * @brief CSI 트래픽 송신 태스크 — 게이트웨이(STA)로 고정 레이트 UDP 일방 송신.
+ *   ping(왕복)과 달리 상대 응답이 필요 없어, 정확히 CSI_TX_INTERVAL_MS 간격으로
+ *   전파가 나가 STA 의 CSI 가 일정·촘촘하게 생성된다. (UDP 수신자 없어도 전파는 나감)
+ */
+static void csi_udp_sender_task(void *arg) {
+    static const uint8_t payload[32] = {0};   // 더미 페이로드(내용 무관)
+    int sock = -1;
+    struct sockaddr_in dest = {0};
+    dest.sin_family = AF_INET;
+    dest.sin_port   = htons(CSI_TX_PORT);
 
-static void csi_ping_noop(esp_ping_handle_t hdl, void *args) {
+    ESP_LOGI(TAG, "CSI 트래픽 생성 시작 (UDP 고정 레이트, interval=%dms = %dHz)",
+             CSI_TX_INTERVAL_MS, 1000 / CSI_TX_INTERVAL_MS);
+
+    while (1) {
+        // 게이트웨이 IP 확보 대기(접속/재접속 대응)
+        esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+        esp_netif_ip_info_t ip_info;
+        if (netif == NULL ||
+            esp_netif_get_ip_info(netif, &ip_info) != ESP_OK || ip_info.gw.addr == 0) {
+            vTaskDelay(pdMS_TO_TICKS(500));
+            continue;
+        }
+        dest.sin_addr.s_addr = ip_info.gw.addr;
+
+        if (sock < 0) {
+            sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+            if (sock < 0) { vTaskDelay(pdMS_TO_TICKS(500)); continue; }
+        }
+
+        // 고정 레이트 송신 루프
+        while (1) {
+            int r = sendto(sock, payload, sizeof(payload), 0,
+                           (struct sockaddr *)&dest, sizeof(dest));
+            if (r < 0) break;   // 연결 끊김 등 → 바깥에서 IP/소켓 재확보
+            vTaskDelay(pdMS_TO_TICKS(CSI_TX_INTERVAL_MS));
+        }
+        if (sock >= 0) { close(sock); sock = -1; }
+        vTaskDelay(pdMS_TO_TICKS(300));
+    }
 }
 
 esp_err_t csi_traffic_init(void) {
-    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
-    if (netif == NULL) {
-        ESP_LOGE(TAG, "STA netif 없음, CSI 트래픽 시작 불가");
-        return ESP_FAIL;
-    }
-
-    esp_netif_ip_info_t ip_info;
-    if (esp_netif_get_ip_info(netif, &ip_info) != ESP_OK || ip_info.gw.addr == 0) {
-        ESP_LOGE(TAG, "게이트웨이 IP 없음, CSI 트래픽 시작 불가");
-        return ESP_FAIL;
-    }
-
-    ip_addr_t target;
-    memset(&target, 0, sizeof(target));
-    ip4_addr_set_u32(ip_2_ip4(&target), ip_info.gw.addr);
-    IP_SET_TYPE(&target, IPADDR_TYPE_V4);
-
-    esp_ping_config_t config = ESP_PING_DEFAULT_CONFIG();
-    config.target_addr = target;
-    config.count = ESP_PING_COUNT_INFINITE;
-    config.interval_ms = CSI_PING_INTERVAL_MS;
-    config.task_stack_size = 3072;
-
-    esp_ping_callbacks_t cbs = {
-        .on_ping_success = csi_ping_noop,
-        .on_ping_timeout = csi_ping_noop,
-        .on_ping_end = csi_ping_noop,
-        .cb_args = NULL,
-    };
-
-    esp_err_t err = esp_ping_new_session(&config, &cbs, &s_csi_ping);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "CSI 트래픽 ping 세션 생성 실패: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    err = esp_ping_start(s_csi_ping);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "CSI 트래픽 ping 시작 실패: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    ESP_LOGI(TAG, "CSI 트래픽 생성 시작 (gateway ping, interval=%dms)", CSI_PING_INTERVAL_MS);
-    return ESP_OK;
+    BaseType_t ok = xTaskCreate(csi_udp_sender_task, "csi_tx", 3072, NULL, 5, NULL);
+    return (ok == pdPASS) ? ESP_OK : ESP_FAIL;
 }

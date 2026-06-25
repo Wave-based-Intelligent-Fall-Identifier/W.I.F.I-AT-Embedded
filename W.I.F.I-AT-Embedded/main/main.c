@@ -77,4 +77,5 @@ void app_main(void) {
     if (xTaskCreate(pir_sensor, "pir_sensor", 4096, NULL, 5, NULL) != pdPASS) { ESP_LOGE(TAG, "PIR TASK 생성 실패"); }
     if (xTaskCreate(heartbeat_task, "heartbeat_task", 4096, NULL, 5, NULL) != pdPASS) { ESP_LOGE(TAG, "PIR TASK 생성 실패"); }
     if (xTaskCreate(esp_ai_task, "esp_ai_task", 6144, NULL, 5, NULL) != pdPASS) { ESP_LOGE(TAG, "PIR TASK 생성 실패"); }
+    if (xTaskCreate(status_led_task, "status_led", 2048, NULL, 3, NULL) != pdPASS) { ESP_LOGE(TAG, "LED TASK 생성 실패"); }  // 내장 LED 연결상태 표시
 }

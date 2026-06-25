@@ -83,7 +83,7 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
 void mqtt5_init(void* pvParameters) {
    esp_mqtt_client_config_t mqtt5_cfg = {
         .broker.address.uri = BROKER_ADDRESS_URI,
-        .session.protocol_ver = MQTT_PROTOCOL_V_5,
+        .session.protocol_ver = MQTT_PROTOCOL_V_3_1_1,
         .network.disable_auto_reconnect = false, // 보드 재연결 활성화
         .credentials.username = "Piuda ESP32 board",
         .credentials.authentication.password = "dsmpiuda2026",

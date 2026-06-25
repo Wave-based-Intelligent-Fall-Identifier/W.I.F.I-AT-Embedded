@@ -27,6 +27,10 @@
 
 #define CSI_PING_INTERVAL_MS 50
 
+// CSI 트래픽: 게이트웨이로 고정 레이트 UDP 일방 송신(응답 불필요 → CSI가 일정/촘촘).
+#define CSI_TX_INTERVAL_MS 20   // 20ms = 50Hz
+#define CSI_TX_PORT        5001 // STA가 안 받아도 전파는 나가 CSI 생성됨
+
 esp_err_t wifiInit(void);
 void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* eventData);
 esp_err_t espnowInit(void);
