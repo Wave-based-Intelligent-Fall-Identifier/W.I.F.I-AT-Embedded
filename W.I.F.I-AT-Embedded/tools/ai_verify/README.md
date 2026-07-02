@@ -31,10 +31,23 @@ python tools/ai_verify/gru_reference.py  # (2) 수치 검증
   ```
 - 실기기 동작은 송신(sender) 보드 전원 복구 후 필요.
 
-## ⛳ 남은 확정 항목 (AI 담당자 확인 → espAI.c 상단 매크로만 수정)
-1. **출력 극성** `GRU_OUTPUT_IS_P_NORMAL` — 학습 라벨에서 class 1 이 정상인가 낙상인가?
-   (현재 1=정상 가정. 반대면 0 으로.)
-2. **정규화** `GRU_INPUT_NORMALIZE` — 학습 때 입력 표준화했나? 했다면 mean/std 를 받아 `apply_input_norm` 구현.
-3. **임계값** `GRU_PFALL_DANGER/WARNING` — 검증 데이터로 튜닝.
-4. **서브캐리어 정합** — 실제 CSI 콜백이 64개 서브캐리어를 주는지 확인
-   (dataset=64, 펌웨어 baseline=52. 모델 경로는 raw 64폭으로 별도 처리, 부족분 zero-pad).
+## 실데이터 평가 결과 (eval_on_dataset.py, csi_dataset_clean.csv 72샘플, 근사)
+- 출력평균 normal=0.876 / fall=0.161, **분리도 AUC=0.977**, 최적임계 정확도 95.8%.
+- **극성 확정**: 출력↑ = normal → `GRU_OUTPUT_IS_P_NORMAL=1` (현재 코드와 일치, 뒤집을 필요 없음).
+- 정규화: raw 입력으로도 잘 분리됨 → raw 학습일 가능성 높음(`GRU_INPUT_NORMALIZE=0` 유지 타당).
+- 임계값: 경험적 최적 p_fall≈0.59 ≈ 현재 `GRU_PFALL_DANGER=0.60`.
+- ⚠️ 근사(학습 텐서 88×71×64 ≠ CSV 72×≤70, 마지막프레임 반복 패딩) + 학습데이터 포함 가능 →
+  95.8%는 낙관적. '판별력 있음 + 극성 방향 맞음'은 견고, 일반화 정확도는 실기기 필요.
+
+## ⛳ 남은 확정 항목
+1. **출력 극성** — ✅ 실데이터로 =1 확정.
+2. **정규화** — 🟡 raw 유력(위 근거). AI 담당자에게 최종 확인 권장.
+3. **임계값** `GRU_PFALL_DANGER/WARNING` — 🟡 현재값 적정. 실기기서 미세 튜닝.
+4. **서브캐리어 정합** — 🔴 실기기서 CSI 콜백이 64채널 주는지 확인 필요
+   (dataset=64, 펌웨어 baseline=52. 모델 경로는 raw 64폭 별도 처리, 부족분 zero-pad).
+
+## 발견 견고화 (discovery hardening)
+- `AppMQTT.c`: 기기 status "online" 을 **retained** 로 발행(`mqtt_publish_retained`).
+  기존엔 online=비retained인데 last_will(offline)=retained라, 늦게 접속한 앱이 기기를
+  "offline" 으로 오인. 이제 online/offline 둘 다 retained → 브로커에 현재 상태 항상 보관.
+- 이벤트 토픽(AI/restroom 등)은 retained 금지(늦은 구독자에 옛 알림 오발 방지).

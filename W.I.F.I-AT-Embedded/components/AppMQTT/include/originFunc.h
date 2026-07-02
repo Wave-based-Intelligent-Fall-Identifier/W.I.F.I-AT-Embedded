@@ -19,6 +19,12 @@ void mqtt5_init(void* pvParameters);
  */
 esp_err_t mqtt_publish(const char* topic, const char* data, int qos, int max_retry);
 
+/**
+ * @brief retained 로 발행(브로커가 마지막 값을 보관 → 늦게 접속한 구독자도 즉시 수신).
+ *        기기 발견용 status 같은 '상태' 토픽에만 사용. 이벤트(AI/restroom 등)엔 쓰지 말 것.
+ */
+esp_err_t mqtt_publish_retained(const char* topic, const char* data, int qos, int max_retry);
+
 esp_err_t mqtt_wait_connected(uint32_t timeout_ms);
 
 

@@ -7,14 +7,14 @@ static const char *TAG = "App MQTT";
 static esp_mqtt_client_handle_t s_client = NULL;
 static bool s_mqtt_connected = false;   
 
-esp_err_t mqtt_publish(const char* topic, const char* data, int qos, int max_retry) {
+static esp_err_t mqtt_publish_ex(const char* topic, const char* data, int qos, int max_retry, int retain) {
     if (s_client == NULL || !s_mqtt_connected) {
         ESP_LOGW(TAG, "현재 MQTT 미연결 상태, publish 스킵: %s", topic);
         return ESP_FAIL;
     }
 
     for (int retry = 0; retry < max_retry; ++retry) {
-        int msg_id = esp_mqtt_client_publish(s_client, topic, data, 0, qos, 0);
+        int msg_id = esp_mqtt_client_publish(s_client, topic, data, 0, qos, retain);
 
         if (msg_id >= 0) {
             ESP_LOGI(TAG, "메시지 발행 성공, msg_id=%d", msg_id);
@@ -26,6 +26,14 @@ esp_err_t mqtt_publish(const char* topic, const char* data, int qos, int max_ret
 
     ESP_LOGE(TAG, "mqtt 재전송 최종 실패: %s", topic);
     return ESP_FAIL;
+}
+
+esp_err_t mqtt_publish(const char* topic, const char* data, int qos, int max_retry) {
+    return mqtt_publish_ex(topic, data, qos, max_retry, 0);   // 일반 이벤트: retain 안 함
+}
+
+esp_err_t mqtt_publish_retained(const char* topic, const char* data, int qos, int max_retry) {
+    return mqtt_publish_ex(topic, data, qos, max_retry, 1);   // 상태 토픽: retain(발견용)
 }
 
 esp_err_t mqtt_wait_connected(uint32_t timeout_ms) {
@@ -56,7 +64,7 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         esp_mqtt_client_subscribe(client, "wify/device01/edit/nownetwork", 1);
         esp_mqtt_client_subscribe(client, "wify/device01/edit/editnetwork", 1);
         
-        mqtt_publish( "wify/device01/status", "online", 1, 3);
+        mqtt_publish_retained( "wify/device01/status", "online", 1, 3);  // retained: 늦게 접속한 앱도 발견
         network_status();
         network_settings();
         break;
