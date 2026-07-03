@@ -8,7 +8,7 @@
 #define WIFI_CONNECTED_BIT BIT0
 
 #ifndef CSI_UART_DUMP
-#define CSI_UART_DUMP 0
+#define CSI_UART_DUMP 1   /* 라이브 UART 그리기용 ON. 테스트 끝나면 0 으로 되돌릴 것 */
 #endif
 #ifndef CSI_UART_DUMP_PAIRS
 #define CSI_UART_DUMP_PAIRS 64   

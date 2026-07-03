@@ -154,7 +154,7 @@ class Monitor:
         self.stop_evt = threading.Event()
         self.thread = None
 
-        self.mode = "file"
+        self.mode = "serial"
         self.cfg = {
             "port": "COM13", "baud": 115200,
             "file": "csi_capture.csv", "fps": 20,
@@ -389,8 +389,8 @@ PAGE = r"""<!doctype html>
 <header>
   <div class="brand"><span class="dot" id="livedot"></span>CSI 낙상 모니터</div>
   <div class="seg">
-    <button id="btnSerial">Serial · UART</button>
-    <button id="btnFile" class="active">File · CSV</button>
+    <button id="btnSerial" class="active">Serial · UART</button>
+    <button id="btnFile">File · CSV</button>
   </div>
   <div class="field"><label>port</label><input id="port" value="COM13"></div>
   <div class="field"><label>baud</label><input id="baud" value="115200"></div>
@@ -455,7 +455,7 @@ PAGE = r"""<!doctype html>
 </main>
 
 <script>
-let mode="file", interpret="iq", lastIdx=-1, maxAmp=1;
+let mode="serial", interpret="iq", lastIdx=-1, maxAmp=1;
 
 const spec=new Chart(document.getElementById("spectrum"),{
   type:"line",
