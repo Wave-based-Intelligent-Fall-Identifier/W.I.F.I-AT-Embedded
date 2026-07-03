@@ -4,7 +4,23 @@
 #include "ping/ping_sock.h"
 #include "lwip/ip_addr.h"
 #include "lwip/sockets.h"
+#include <stdio.h>
 #define WIFI_CONNECTED_BIT BIT0
+
+/* -------------------------------------------------------------------------
+ * CSI UART 덤프 (호스트 tools/ai_verify/fall_flask.py 파서용) — 평소 0.
+ *   1 로 빌드하면 CSI 콜백이 프레임마다 raw I/Q 를 한 줄로 UART 에 찍는다:
+ *     "CSIDUMP [im,re,im,re,...]"   (앞 CSI_UART_DUMP_PAIRS 쌍 = LLTF 폭)
+ *   fall_flask.py 는 [..] 안 숫자를 [im,re] 쌍으로 읽어 amp 계산(펌웨어와 동일).
+ *   ⚠ 128개 int8/프레임 → 115200baud 에선 ~18fps 상한. 실시간이면 921600 권장.
+ *   빌드 시 켜기:  idf.py build -DCSI_UART_DUMP=1   (또는 아래 값을 1 로)
+ * ------------------------------------------------------------------------- */
+#ifndef CSI_UART_DUMP
+#define CSI_UART_DUMP 1   /* TODO: 테스트 후 0 으로 되돌릴 것 */
+#endif
+#ifndef CSI_UART_DUMP_PAIRS
+#define CSI_UART_DUMP_PAIRS 64   /* 덤프할 복소쌍 수(모델 입력폭 GRU_INPUT_DIM 과 정합) */
+#endif
 
 const static char* TAG = "ESP-NOW-AP";
 static EventGroupHandle_t wifiEventGroup;
@@ -129,6 +145,20 @@ static void csi_rx_cb(void *ctx, wifi_csi_info_t *info) {
     raw.len = n;
 
     xQueueSend(g_csi_queue, &raw, 0);
+
+#if CSI_UART_DUMP
+    /* raw I/Q 를 한 줄로 UART 에 덤프(호스트 파서용). static: 콜백 스택 절약. */
+    static char dump[CSI_UART_DUMP_PAIRS * 2 * 6 + 16];
+    int dpairs = raw.len / 2;
+    if (dpairs > CSI_UART_DUMP_PAIRS) dpairs = CSI_UART_DUMP_PAIRS;
+    int off = snprintf(dump, sizeof(dump), "CSIDUMP [");
+    for (int i = 0; i < dpairs && off < (int)sizeof(dump) - 8; i++) {
+        off += snprintf(dump + off, sizeof(dump) - off, "%d,%d,",
+                        raw.buf[2 * i], raw.buf[2 * i + 1]);
+    }
+    snprintf(dump + off, sizeof(dump) - off, "]");
+    puts(dump);
+#endif
 }
 
 esp_err_t csi_recv_init(void) {
