@@ -80,6 +80,7 @@ esp_err_t wifiInit(void) {
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
+    ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(84));
 
     ESP_LOGI(TAG, "WiFi 초기화 성공, 연결 대기 중");
 
@@ -167,9 +168,9 @@ esp_err_t csi_recv_init(void) {
         .stbc_htltf2_en    = true,
         .ltf_merge_en      = true,
         .channel_filter_en = true,
-        .manu_scale        = false,
-        .shift             = 0,
-        .dump_ack_en       = false,
+        .manu_scale        = true,
+        .shift             = 8,
+        .dump_ack_en       = true,
     };
 
     err = esp_wifi_set_csi_config(&csi_config);
