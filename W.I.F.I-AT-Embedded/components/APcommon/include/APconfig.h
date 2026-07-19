@@ -2,13 +2,14 @@
 #define CONFIG_H
 
 #include <stdint.h>
-#include "freertos/FreeRTOS.h"  
+#include "sdkconfig.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
-#define id "dd"
-#define passwd "ekdus825"
+#define id                 CONFIG_ESP_WIFI_SSID
+#define passwd             CONFIG_ESP_WIFI_PASSWORD
 
-#define BROKER_ADDRESS_URI "mqtt://172.20.10.10:1883"
+#define BROKER_ADDRESS_URI CONFIG_ESP_BROKER_URI
 
 // 테스트 모드: 정의하면 딥슬립 없이 항시 동작 (CSI/baseline 디버깅용)
 // 배포 시에는 반드시 주석 처리할 것

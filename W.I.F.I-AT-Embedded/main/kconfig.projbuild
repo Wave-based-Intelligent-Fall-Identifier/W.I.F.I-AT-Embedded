@@ -1,20 +1,29 @@
 menu "Secret Configuration"
-    
+
 config ESP_WIFI_SSID
     string "WiFi SSID"
     default "myssid"
     help
-	SSID (network name) for the example to connect to.
+        연결할 공유기(AP)의 SSID (네트워크 이름).
+        실제 값은 로컬 sdkconfig 에만 저장되며 git 에는 올라가지 않습니다.
 
 config ESP_WIFI_PASSWORD
     string "WiFi Password"
     default "mypassword"
     help
-	WiFi password (WPA or WPA2) for the example to use.
+        공유기(WPA/WPA2) 비밀번호.
+
+config ESP_BROKER_URI
+    string "MQTT Broker URI"
+    default "mqtt://127.0.0.1:1883"
+    help
+        MQTT 브로커 접속 주소. 예) mqtt://172.20.10.10:1883
 
 config ESP_MAC_ADDR
     string "MAC Address"
     default "0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF"
     help
-    MAC Address for the connect to other ESP32.
+        상대 ESP32(AP) 의 MAC 주소.
+        NOTE: 현재 코드에서는 APconfig.h 의 AP_MAC_ADDRESS 매크로를 사용합니다.
+        (문자열 → 배열 초기화 변환 문제로 Kconfig 문자열을 직접 쓰지 않음)
 endmenu
