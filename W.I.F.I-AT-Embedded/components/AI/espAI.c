@@ -99,9 +99,18 @@ void esp_ai_task(void* pvParameter) {
 
     ESP_LOGI(TAG, "CSI 처리 task 시작, baseline 캘리브레이션 대기");
 
+    static uint32_t s_diag_rx = 0;   /* [DIAG] 임시 진단 */
     while (1) {
-        if (g_csi_queue == NULL || xQueueReceive(g_csi_queue, &raw, portMAX_DELAY) != pdTRUE) {
+        if (g_csi_queue == NULL) { vTaskDelay(pdMS_TO_TICKS(100)); continue; }
+        if (xQueueReceive(g_csi_queue, &raw, pdMS_TO_TICKS(2000)) != pdTRUE) {
+            ESP_LOGW(TAG, "[DIAG] CSI 2초간 없음 (PIR=%d, base_ready=%d)",
+                     gpio_get_level(PIR_SENSOR_PIN), baseline_is_ready(&g_baseline));
             continue;
+        }
+        if (++s_diag_rx % 50 == 0) {
+            ESP_LOGI(TAG, "[DIAG] CSI rx=%u, PIR=%d, base_ready=%d, base_cnt=%u",
+                     (unsigned)s_diag_rx, gpio_get_level(PIR_SENSOR_PIN),
+                     baseline_is_ready(&g_baseline), (unsigned)g_baseline.sample_count);
         }
 
         if (g_baseline_reset_req) {
