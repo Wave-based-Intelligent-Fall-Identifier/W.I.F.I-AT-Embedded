@@ -29,7 +29,8 @@ void wifiHandler(void *args, esp_event_base_t eventBase, int32_t eventId, void* 
     }
     else if (eventBase == WIFI_EVENT && eventId == WIFI_EVENT_STA_DISCONNECTED) {
         networkFlag = 0;
-        ESP_LOGI(TAG, "공유기 연결 끊김, 재접속");
+        wifi_event_sta_disconnected_t* d = (wifi_event_sta_disconnected_t*) eventData;
+        ESP_LOGW(TAG, "공유기 연결 끊김, 재접속 (ssid=%.*s reason=%d)", d->ssid_len, (char*)d->ssid, d->reason);
         esp_wifi_connect();
     }
     else if (eventBase == IP_EVENT && eventId == IP_EVENT_STA_GOT_IP) {
@@ -74,6 +75,9 @@ esp_err_t wifiInit(void) {
             .ssid = id,
             .password = passwd,
             .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+            // dd(홈WiFi) 접속 시 bssid 핀 해제 — SSID 로 일반 스캔 접속.
+            // (wify_csi_ap 직결이 필요하면 bssid_set=true + STA보드 AP MAC 로 복구)
+            .bssid_set = false,
         },
     };
 
@@ -81,6 +85,8 @@ esp_err_t wifiInit(void) {
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
     ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(84));
+    // 절전(modem-sleep) 비활성화: 스캔/결합 중 beacon 놓침 방지(혼잡환경 NO_AP_FOUND 완화).
+    ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_NONE));
 
     ESP_LOGI(TAG, "WiFi 초기화 성공, 연결 대기 중");
 
@@ -89,6 +95,18 @@ esp_err_t wifiInit(void) {
         ESP_LOGW(TAG, "WiFi 연결 대기 시간 초과, 백그라운드에서 재연결 시도 계속");
     }
     return ESP_OK;
+}
+
+/**
+ * @brief ESP-NOW 수신 콜백 — STA(수신보드)가 broadcast 한 페어링 요청(payload=0) 수신 로그.
+ */
+static void espnow_recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
+    if (!info || !data || len < 1) {
+        return;
+    }
+    const uint8_t *m = info->src_addr;
+    ESP_LOGI(TAG, "ESP-NOW 수신 from %02X:%02X:%02X:%02X:%02X:%02X, payload=%u (len=%d)",
+             m[0], m[1], m[2], m[3], m[4], m[5], (unsigned)data[0], len);
 }
 
 esp_err_t espnowInit(void) {
@@ -102,6 +120,12 @@ esp_err_t espnowInit(void) {
     err = esp_now_init();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "ESP-NOW 초기화 실패");
+        return err;
+    }
+
+    err = esp_now_register_recv_cb(espnow_recv_cb);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "ESP-NOW recv 콜백 등록 실패");
         return err;
     }
 
@@ -196,9 +220,9 @@ esp_err_t csi_recv_init(void) {
 }
 
 /**
- * @brief CSI 트래픽 송신 태스크 — 게이트웨이(STA)로 고정 레이트 UDP 일방 송신.
- *   ping(왕복)과 달리 상대 응답이 필요 없어, 정확히 CSI_TX_INTERVAL_MS 간격으로
- *   전파가 나가 STA 의 CSI 가 일정·촘촘하게 생성된다. (UDP 수신자 없어도 전파는 나감)
+ * @brief CSI 트래픽 송신 태스크 — 게이트웨이로 고정 레이트 UDP 유니캐스트 송신.
+ *   유니캐스트라 AP 가 매 프레임 ACK → AT 가 그 ACK/응답을 수신하며 자체 CSI 가 조밀·일정하게
+ *   생성된다(AT 단독 dd 센싱). 상대 앱수신자 없어도 전파는 나감.
  */
 static void csi_udp_sender_task(void *arg) {
     static const uint8_t payload[32] = {0};   // 더미 페이로드(내용 무관)

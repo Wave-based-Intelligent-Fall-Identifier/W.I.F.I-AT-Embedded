@@ -15,8 +15,8 @@
 // 배포 시에는 반드시 주석 처리할 것
 #define TEST
 
-// 여기 MAC 수정으로 연결
-#define AP_MAC_ADDRESS {0x78, 0x1C, 0x3C, 0xF4, 0xAF, 0xF4}
+// 여기 MAC 수정으로 연결 (스왑후 STA 수신보드 = COM6 의 실제 AP MAC)
+#define AP_MAC_ADDRESS {0x20, 0x50, 0x0D, 0x07, 0xD3, 0x9D}
 
 typedef struct espnow_payload_t{
     uint8_t command;
