@@ -69,6 +69,7 @@ void app_main(void) {
             ESP_LOGE(TAG, "baseline 초기화 실패");
         }
     }
+
     ESP_ERROR_CHECK(csi_recv_init());
     csi_traffic_init();
 

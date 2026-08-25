@@ -1,5 +1,5 @@
 # Project default configuration
-# Enable WiFi CSI (Channel State Information) — required by csi_recv_init()
+# Enable WiFi CSI (Channel State Information) - required by csi_recv_init()
 CONFIG_ESP_WIFI_CSI_ENABLED=y
-# Enable MQTT v5.0 — AppMQTT uses MQTT_PROTOCOL_V_5
+# Enable MQTT v5.0 - AppMQTT uses MQTT_PROTOCOL_V_5
 CONFIG_MQTT_PROTOCOL_5=y
