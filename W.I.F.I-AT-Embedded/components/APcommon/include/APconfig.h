@@ -11,6 +11,10 @@
 
 #define BROKER_ADDRESS_URI CONFIG_ESP_BROKER_URI
 
+// MQTT 브로커 로그인 자격증명 — 실제 값은 로컬 sdkconfig(menuconfig)에만 저장(git 미포함).
+#define MQTT_USERNAME      CONFIG_ESP_MQTT_USERNAME
+#define MQTT_PASSWORD      CONFIG_ESP_MQTT_PASSWORD
+
 // 테스트 모드: 정의하면 딥슬립 없이 항시 동작 (CSI/baseline 디버깅용)
 // 배포 시에는 반드시 주석 처리할 것
 #define TEST

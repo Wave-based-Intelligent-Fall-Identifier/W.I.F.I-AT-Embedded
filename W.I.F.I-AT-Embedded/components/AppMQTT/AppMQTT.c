@@ -93,8 +93,8 @@ void mqtt5_init(void* pvParameters) {
         .broker.address.uri = BROKER_ADDRESS_URI,
         .session.protocol_ver = MQTT_PROTOCOL_V_3_1_1,
         .network.disable_auto_reconnect = false, // 보드 재연결 활성화
-        .credentials.username = "Piuda ESP32 board",
-        .credentials.authentication.password = "dsmpiuda2026",
+        .credentials.username = MQTT_USERNAME,
+        .credentials.authentication.password = MQTT_PASSWORD,
         .session.last_will.topic = "wify/device01/status",
         .session.last_will.msg = "offline",
         .session.last_will.msg_len = 7,

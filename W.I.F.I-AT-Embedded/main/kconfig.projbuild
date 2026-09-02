@@ -19,6 +19,20 @@ config ESP_BROKER_URI
     help
         MQTT 브로커 접속 주소. 예) mqtt://172.20.10.10:1883
 
+config ESP_MQTT_USERNAME
+    string "MQTT Username"
+    default "wify"
+    help
+        MQTT 브로커 로그인 사용자명.
+        실제 값은 로컬 sdkconfig 에만 저장되며 git 에는 올라가지 않습니다.
+
+config ESP_MQTT_PASSWORD
+    string "MQTT Password"
+    default "changeme"
+    help
+        MQTT 브로커 로그인 비밀번호.
+        실제 값은 로컬 sdkconfig 에만 저장되며 git 에는 올라가지 않습니다.
+
 config ESP_MAC_ADDR
     string "MAC Address"
     default "0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF"
