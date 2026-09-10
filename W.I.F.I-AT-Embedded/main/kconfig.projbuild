@@ -40,4 +40,11 @@ config ESP_MAC_ADDR
         상대 ESP32(AP) 의 MAC 주소.
         NOTE: 현재 코드에서는 APconfig.h 의 AP_MAC_ADDRESS 매크로를 사용합니다.
         (문자열 → 배열 초기화 변환 문제로 Kconfig 문자열을 직접 쓰지 않음)
+
+config WIFY_DEVICE_ID
+    string "WIFY device id (MQTT topic segment)"
+    default "device01"
+    help
+        MQTT 토픽의 기기 식별자. 토픽은 wify/<이 값>/... 형태로 빌드된다.
+        다기기 운용 시 기기마다 다르게 설정.
 endmenu

@@ -57,14 +57,13 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         s_mqtt_connected = true;
 
         /*
-        Topic 구독 -> 와일드카드로 처리
-        추후 확장 시 device01 -> deviceN에 대해 N을 받는 로직 필요
+        Topic 구독. 기기 식별자는 Kconfig(WIFY_DEVICE_ID)로 주입 → WIFY_TOPIC() 로 빌드.
         */
-        esp_mqtt_client_subscribe(client, "wify/device01/baseline/cmd", 1);
-        esp_mqtt_client_subscribe(client, "wify/device01/edit/nownetwork", 1);
-        esp_mqtt_client_subscribe(client, "wify/device01/edit/editnetwork", 1);
-        
-        mqtt_publish_retained( "wify/device01/status", "online", 1, 3);  // retained: 늦게 접속한 앱도 발견
+        esp_mqtt_client_subscribe(client, WIFY_TOPIC("/baseline/cmd"), 1);
+        esp_mqtt_client_subscribe(client, WIFY_TOPIC("/edit/nownetwork"), 1);
+        esp_mqtt_client_subscribe(client, WIFY_TOPIC("/edit/editnetwork"), 1);
+
+        mqtt_publish_retained( WIFY_TOPIC("/status"), "online", 1, 3);  // retained: 늦게 접속한 앱도 발견
         network_status();
         network_settings();
         break;
@@ -95,7 +94,7 @@ void mqtt5_init(void* pvParameters) {
         .network.disable_auto_reconnect = false, // 보드 재연결 활성화
         .credentials.username = MQTT_USERNAME,
         .credentials.authentication.password = MQTT_PASSWORD,
-        .session.last_will.topic = "wify/device01/status",
+        .session.last_will.topic = WIFY_TOPIC("/status"),
         .session.last_will.msg = "offline",
         .session.last_will.msg_len = 7,
         .session.last_will.qos = 1,

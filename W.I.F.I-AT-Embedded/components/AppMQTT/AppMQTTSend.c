@@ -8,7 +8,7 @@ void heartbeat_task(void* pvParameter) {
     char payload[64];
     while (1) {
         snprintf(payload, sizeof(payload), "{\"alive\":true,\"uptime\":%lld}", esp_timer_get_time() / 1000000); 
-        mqtt_publish("wify/device01/heartbeat", payload, 0, 1);
+        mqtt_publish(WIFY_TOPIC("/heartbeat"), payload, 0, 1);
         vTaskDelay(pdMS_TO_TICKS(30000)); // 30초, QoS : 0
     }
 }   
@@ -22,7 +22,7 @@ void network_status(void) {
 
     // 앱 계약(WIFY_MQTT_APP_PROTOCOL §3): payload = 평문 "connect" / "disconnect".
     const char *payload = networkFlag ? "connect" : "disconnect";
-    mqtt_publish("wify/device01/nownetwork/status", payload, 1, 3);
+    mqtt_publish(WIFY_TOPIC("/nownetwork/status"), payload, 1, 3);
     return;
 }
 
@@ -33,7 +33,7 @@ void network_settings(void) {
               "{\"networkid\":\"%s\"}",
               id);
 
-    mqtt_publish("wify/device01/nownetwork", payload, 1, 3);
+    mqtt_publish(WIFY_TOPIC("/nownetwork"), payload, 1, 3);
     return;
 }
 
@@ -42,6 +42,6 @@ void network_settings_send_again(void) {
     char payload[64];
     snprintf(payload, sizeof(payload), "AGAIN");
 
-    mqtt_publish("wify/device01/nownetwork/again", payload, 1, 3);
+    mqtt_publish(WIFY_TOPIC("/nownetwork/again"), payload, 1, 3);
     return;
 }

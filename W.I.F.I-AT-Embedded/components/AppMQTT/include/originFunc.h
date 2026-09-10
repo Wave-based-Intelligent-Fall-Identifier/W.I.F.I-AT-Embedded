@@ -2,6 +2,14 @@
 #define APP_BLE_ORIGIN_FUNC
 
 #include "headers.h"
+#include "sdkconfig.h"
+
+/* MQTT 기기 식별자 — 토픽 세그먼트. Kconfig(WIFY_DEVICE_ID)로 주입, 기본 "device01". */
+#ifndef CONFIG_WIFY_DEVICE_ID
+#define CONFIG_WIFY_DEVICE_ID "device01"
+#endif
+/* 컴파일타임 토픽 빌더: WIFY_TOPIC("/AI") -> "wify/device01/AI" */
+#define WIFY_TOPIC(suffix) ("wify/" CONFIG_WIFY_DEVICE_ID suffix)
 
 /**
  * @brief mqtt5 초기화 및 핸들러 등록 함수

@@ -8,7 +8,7 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     static char new_ssid[33] = {0};
     static char new_passwd[65] = {0};
 
-    if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline/cmd", topic_len) == 0) {
+    if (topic_len == strlen(WIFY_TOPIC("/baseline/cmd")) && strncmp(topic, WIFY_TOPIC("/baseline/cmd"), topic_len) == 0) {
         // 앱 계약(WIFY_MQTT_APP_PROTOCOL §4): payload = {"cmd":"BASELINE_REBUILD"} (JSON).
         // 정확한 JSON 파싱 대신 명령 토큰 존재만 확인(구 평문 "BASELINEREBUILD" 도 허용).
         char buf[64];
@@ -24,7 +24,7 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
         }
     }
 
-    else if (topic_len == strlen("wify/device01/edit/nownetwork") && strncmp(topic, "wify/device01/edit/nownetwork", topic_len) == 0) {
+    else if (topic_len == strlen(WIFY_TOPIC("/edit/nownetwork")) && strncmp(topic, WIFY_TOPIC("/edit/nownetwork"), topic_len) == 0) {
         ESP_LOGI(TAG, "새로운 id/passwd 입력");
 
         char buf[128];
@@ -63,7 +63,7 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
         }
     }
 
-    else if (topic_len == strlen("wify/device01/edit/editnetwork") && strncmp(topic, "wify/device01/edit/editnetwork", topic_len) == 0) {
+    else if (topic_len == strlen(WIFY_TOPIC("/edit/editnetwork")) && strncmp(topic, WIFY_TOPIC("/edit/editnetwork"), topic_len) == 0) {
         if (data_len == (int)strlen("NEWNETWORKEDIT") && strncmp(data, "NEWNETWORKEDIT", data_len) == 0) {
             ESP_LOGI(TAG, "새로운 id/passwd 적용");
 

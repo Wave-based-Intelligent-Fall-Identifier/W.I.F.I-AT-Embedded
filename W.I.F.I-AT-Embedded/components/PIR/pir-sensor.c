@@ -17,7 +17,7 @@ void pir_sensor(void* pvParameters) {
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "MQTT재연결 실패");
         }
-        mqtt_publish("wify/device01/restroom", "ACT", 1, 3);
+        mqtt_publish(WIFY_TOPIC("/restroom"), "ACT", 1, 3);
 
         if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
             payload.command = 1; 
@@ -43,7 +43,7 @@ void pir_sensor(void* pvParameters) {
         }
 
         ESP_LOGI(TAG, "10분 경과, DeepSleep 시작");
-        mqtt_publish("wify/device01/restroom", "DEACT", 1, 3);
+        mqtt_publish(WIFY_TOPIC("/restroom"), "DEACT", 1, 3);
         
         if (xSemaphoreTake(nowMutex, portMAX_DELAY) == pdTRUE) {
             payload.command = 2;
@@ -69,7 +69,7 @@ void pir_sensor(void* pvParameters) {
     else {
         ESP_LOGI(TAG, "초기 부팅. PIR 대기 모드로 변경합니다.");
         mqtt_wait_connected(5000);
-        mqtt_publish("wify/device01/restroom", "LOAD", 1, 3);
+        mqtt_publish(WIFY_TOPIC("/restroom"), "LOAD", 1, 3);
         esp_sleep_enable_ext1_wakeup(1ULL << PIR_SENSOR_PIN, ESP_EXT1_WAKEUP_ANY_HIGH);
     }
 #ifdef TEST
