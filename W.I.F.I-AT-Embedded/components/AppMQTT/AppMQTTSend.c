@@ -30,8 +30,8 @@ void network_status(void) {
 void network_settings(void) {
      char payload[160];
      snprintf(payload, sizeof(payload),
-              "{\"networkid\":\"%s\",\"networkpasswd\":\"%s\"}",
-              id, passwd);
+              "{\"networkid\":\"%s\"}",
+              id);
 
     mqtt_publish("wify/device01/nownetwork", payload, 1, 3);
     return;
