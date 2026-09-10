@@ -58,7 +58,7 @@ esp_err_t baseline_init(csi_baseline_t *bf) {
     ESP_ERROR_CHECK(baseline_nvs_open());
 
     ESP_LOGI(TAG, "Baseline 재학습 시작, 시작 메시지 송신 / topic : wify/device01/baseline/status");
-    mqtt_publish("wify/device01/baseline/status", "BASELINESTART", 1, 3);
+    mqtt_publish("wify/device01/baseline/status", "MEASURING", 1, 3);
     return ESP_OK;
 }
 
@@ -79,7 +79,7 @@ void baseline_update(csi_baseline_t *bf, const float *amp) {
         bf->ready = true;
 
         ESP_LOGI(TAG, "Baseline 캘리브레이션 완료, 완료 메시지 송신 / topic : wify/device01/baseline/status");
-        mqtt_publish("wify/device01/baseline/status", "BASELINEDONE", 1, 3);
+        mqtt_publish("wify/device01/baseline/status", "DONE", 1, 3);
         baseline_save_nvs(bf);
     }
 }

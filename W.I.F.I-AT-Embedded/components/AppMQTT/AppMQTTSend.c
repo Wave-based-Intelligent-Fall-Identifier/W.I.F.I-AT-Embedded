@@ -20,8 +20,8 @@ void network_status(void) {
         ESP_LOGE(TAG, "wifi 연결 / 전역 변수 문제 발생");
     }
 
-    char payload[64];
-    snprintf(payload, sizeof(payload), "{\"network\":\"%s\"}", networkFlag ? "connect" : "disconnected");
+    // 앱 계약(WIFY_MQTT_APP_PROTOCOL §3): payload = 평문 "connect" / "disconnect".
+    const char *payload = networkFlag ? "connect" : "disconnect";
     mqtt_publish("wify/device01/nownetwork/status", payload, 1, 3);
     return;
 }

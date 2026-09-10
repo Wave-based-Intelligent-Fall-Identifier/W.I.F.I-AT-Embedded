@@ -9,7 +9,13 @@ void Server_dataa_process(int topic_len, char* topic, int data_len, char* data) 
     static char new_passwd[65] = {0};
 
     if (topic_len == strlen("wify/device01/baseline/cmd") && strncmp(topic, "wify/device01/baseline/cmd", topic_len) == 0) {
-        if (data_len == (int)strlen("BASELINEREBUILD") && strncmp(data, "BASELINEREBUILD", data_len) == 0) {
+        // 앱 계약(WIFY_MQTT_APP_PROTOCOL §4): payload = {"cmd":"BASELINE_REBUILD"} (JSON).
+        // 정확한 JSON 파싱 대신 명령 토큰 존재만 확인(구 평문 "BASELINEREBUILD" 도 허용).
+        char buf[64];
+        int len = (data_len < (int)sizeof(buf) - 1) ? data_len : (int)sizeof(buf) - 1;
+        memcpy(buf, data, len);
+        buf[len] = '\0';
+        if (strstr(buf, "BASELINE_REBUILD") != NULL || strstr(buf, "BASELINEREBUILD") != NULL) {
             g_baseline_reset_req = true;
             ESP_LOGI(TAG, "baseline 재설정 명령 수신, 다음 CSI 프레임에 재탐지");
         }
