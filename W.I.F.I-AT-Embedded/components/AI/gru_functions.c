@@ -1,7 +1,7 @@
 #include <math.h>
 #include "gru_weights.h"
 
-#define INPUT_DIM 64
+#define INPUT_DIM 12
 #define UNITS     16
 #define SEQ_LEN   71
 

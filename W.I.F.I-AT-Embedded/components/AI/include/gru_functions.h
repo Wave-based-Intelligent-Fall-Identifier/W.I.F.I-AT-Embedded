@@ -3,7 +3,7 @@
 
 // GRU 낙상 판정 모델 입력 형상 (AI 담당자 export 기준: x_train shape (N, 71, 64))
 #define GRU_SEQ_LEN   71   // 시퀀스 길이(프레임 수)
-#define GRU_INPUT_DIM 64   // 프레임당 서브캐리어 수
+#define GRU_INPUT_DIM 12   // 프레임당 서브캐리어 수 (sc16~sc27, 학습셋과 동일)
 
 /**
  * @brief 71x64 raw amplitude 윈도 -> 확률 1개.
