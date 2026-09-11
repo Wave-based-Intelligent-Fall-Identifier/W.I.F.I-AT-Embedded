@@ -25,15 +25,20 @@ static const char *TAG = "ESP-AI";
  *   현재는 raw amplitude 그대로 사용(항등). mean/std 를 받으면 apply_input_norm 수정. */
 #define GRU_INPUT_NORMALIZE 0
 
-/* [임계값] 낙상 확률(p_fall) 기준 3단계. 검증 후 튜닝 대상. */
-#define GRU_PFALL_DANGER   0.60f   /* p_fall >= 0.60 -> DAN(낙상 확정) */
-#define GRU_PFALL_WARNING  0.40f   /* 0.40 <= p_fall < 0.60 -> WARN(의심) */
+/* [입력 서브캐리어] 학습셋(csi_dataset.csv)이 sc16~sc27(12개)만 사용 →
+ *   raw CSI 서브캐리어 인덱스 16부터 GRU_INPUT_DIM(=12)개를 그대로 선택. */
+#define GRU_SC_BASE  16
+
+/* [임계값] 낙상 확률(p_fall) 기준 3단계. 검증 후 튜닝 대상.
+ *   모델 결정경계: p_normal < 0.5 == p_fall >= 0.5 -> 낙상. DANGER를 여기에 맞춤. */
+#define GRU_PFALL_DANGER   0.50f   /* p_fall >= 0.50 -> DAN(낙상 확정) */
+#define GRU_PFALL_WARNING  0.40f   /* 0.40 <= p_fall < 0.50 -> WARN(의심) */
 
 /* 추론 주기: 새 프레임 GRU_INFER_STRIDE개마다 1회 판정 */
 #define GRU_INFER_STRIDE   FALL_INFER_STRIDE
 
 /* AI 판단 발행 토픽/페이로드 (앱: wify/{id}/AI, DAN/WARN/NOR — WifyTopics.kt 와 1:1) */
-#define AI_TOPIC     "wify/device01/AI"
+#define AI_TOPIC     WIFY_TOPIC("/AI")
 #define AI_PL_DANGER  "DAN"
 #define AI_PL_WARNING "WARN"
 #define AI_PL_NORMAL  "NOR"
@@ -133,15 +138,17 @@ void esp_ai_task(void* pvParameter) {
             amp[i] = 0.0f;
         }
 
-        /* 모델 입력용 진폭(64 폭, raw — baseline 감산 안 함) */
-        int gn = (pairs > GRU_INPUT_DIM) ? GRU_INPUT_DIM : pairs;
-        for (int i = 0; i < gn; i++) {
-            float im = (float)raw.buf[2 * i];
-            float re = (float)raw.buf[2 * i + 1];
-            gamp[i] = sqrtf(re * re + im * im);
-        }
-        for (int i = gn; i < GRU_INPUT_DIM; i++) {
-            gamp[i] = 0.0f;
+        /* 모델 입력용 진폭(sc16~sc27 = 12개, raw — baseline 감산 안 함).
+         * 학습셋과 동일하게 서브캐리어 GRU_SC_BASE..+GRU_INPUT_DIM 만 선택. */
+        for (int i = 0; i < GRU_INPUT_DIM; i++) {
+            int sc = GRU_SC_BASE + i;
+            if (sc < pairs) {
+                float im = (float)raw.buf[2 * sc];
+                float re = (float)raw.buf[2 * sc + 1];
+                gamp[i] = sqrtf(re * re + im * im);
+            } else {
+                gamp[i] = 0.0f;
+            }
         }
 
         /* 캘리브레이션(빈방 baseline 수집) 중에는 추론하지 않음 */
